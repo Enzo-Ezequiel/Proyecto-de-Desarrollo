@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "ms-python.debugpy",
+    "ms-vscode-remote.remote-containers",
+    "ms-vscode.makefile-tools",
+    "ms-vscode.hexeditor",
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+    "eamodio.gitlens",
+    "ms-vscode.rest-client"
+  ]
+}
