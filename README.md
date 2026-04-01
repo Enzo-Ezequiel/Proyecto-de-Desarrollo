@@ -6,4 +6,4 @@ Docker (Engine nativo en WSL2)
 
 Git para Windows
 
-Visual Studio Code Manu gay
+Visual Studio Code
