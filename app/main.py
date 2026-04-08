@@ -61,6 +61,9 @@ def health_check() -> dict[str, str]:
 
 
 # Registrar routers
+from app.controllers import pdf_routes # Importas tu archivo
+
+app.include_router(pdf_routes.router) # Lo registras
 app.include_router(
     user_routes.router,
     prefix=settings.api_prefix,
