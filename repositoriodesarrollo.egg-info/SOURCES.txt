@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+app/__init__.py
+app/main.py
+repositoriodesarrollo.egg-info/PKG-INFO
+repositoriodesarrollo.egg-info/SOURCES.txt
+repositoriodesarrollo.egg-info/dependency_links.txt
+repositoriodesarrollo.egg-info/requires.txt
+repositoriodesarrollo.egg-info/top_level.txt
+tests/__init__.py
+tests/conftest.py
+tests/test_api.py
+tests/test_models.py
+tests/test_services.py

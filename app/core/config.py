@@ -71,6 +71,7 @@ class Settings(BaseSettings):
 
     # Base de datos (preparado para futuro uso)
     database_url: Optional[str] = None
+    gemini_api_key: str = ""
 
     class Config:
         """Configuración de Pydantic Settings."""
