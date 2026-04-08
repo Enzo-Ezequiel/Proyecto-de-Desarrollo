@@ -1,219 +1,288 @@
 # RepositorioDesarrollo
 
-A professional three-layer architecture FastAPI application following Clean Code principles and Feature-Driven Development.
+Una aplicación profesional con arquitectura de tres capas usando FastAPI, siguiendo principios de Clean Code y Feature-Driven Development.
 
-## 📁 Project Structure
+## 📁 Estructura del Proyecto
 
 ```
 RepositorioDesarrollo/
-├── app/                          # Main application code
+├── app/                          # Código fuente principal
 │   ├── __init__.py
-│   ├── main.py                   # FastAPI app entry point
-│   ├── models/                   # Domain entities
+│   ├── main.py                   # Punto de entrada de FastAPI
+│   ├── models/                   # Entidades de dominio
 │   │   ├── __init__.py
-│   │   ├── base_model.py         # BaseEntity generic class
-│   │   └── user.py               # User domain model
-│   ├── services/                 # Business logic layer
+│   │   ├── base_model.py         # Clase base genérica
+│   │   └── user.py               # Modelo de usuario
+│   ├── services/                 # Capa de lógica de negocio
 │   │   ├── __init__.py
-│   │   ├── base_service.py       # Generic CRUD service
-│   │   └── user_service.py       # User business logic
-│   ├── controllers/              # HTTP endpoints layer
+│   │   ├── base_service.py       # Servicio genérico CRUD
+│   │   └── user_service.py       # Lógica de negocio de usuarios
+│   ├── controllers/              # Capa de endpoints HTTP
 │   │   ├── __init__.py
-│   │   └── user_routes.py        # User API routes (7 endpoints)
-│   ├── schemas/                  # Pydantic validation schemas
+│   │   └── user_routes.py        # Rutas de API de usuarios (7 endpoints)
+│   ├── schemas/                  # Esquemas de validación Pydantic
 │   │   ├── __init__.py
-│   │   └── user_schemas.py       # User request/response schemas
-│   └── core/                     # Core configuration
+│   │   └── user_schemas.py       # Esquemas de solicitud/respuesta
+│   └── core/                     # Configuración central
 │       ├── __init__.py
-│       ├── config.py             # Application settings
-│       ├── exceptions.py         # Custom exceptions
-│       └── utils.py              # Utility functions
-├── tests/                        # Comprehensive test suite
+│       ├── config.py             # Configuración de la aplicación
+│       ├── exceptions.py         # Excepciones personalizadas
+│       └── utils.py              # Funciones auxiliares
+├── tests/                        # Suite de tests completa
 │   ├── __init__.py
-│   ├── conftest.py               # Pytest configuration
-│   ├── test_models.py            # Unit tests for models (7 tests)
-│   ├── test_services.py          # Unit tests for services (8 tests)
-│   └── test_api.py               # Integration tests (12 tests)
-├── docs/                         # Documentation
-│   ├── 01_START_HERE.md          # 5-minute quick start (Spanish)
-│   ├── 02_QUICK_START.md         # 400+ line comprehensive guide
-│   ├── 03_ARCHITECTURE.md        # 500+ line technical documentation
-│   └── 04_STRUCTURE_SUMMARY.md   # Architecture summary & statistics
-├── scripts/                      # Utility scripts
-│   └── run.py                    # FastAPI application launcher
-├── config/                       # Configuration files
-│   ├── .env.example              # Environment variables template
-│   └── requirements.txt          # Python dependencies
-├── .vscode/                      # VS Code settings
-│   ├── settings.json             # Editor & Python configuration
-│   ├── extensions.json           # Recommended extensions
-│   └── launch.json               # Debug configurations
-├── pyproject.toml                # Python project configuration
-├── repositoriodesarrollo.toml    # Additional project config
-├── RepositorioDesarrollo.code-workspace  # VS Code workspace
-├── .python-version               # Python version specification
-├── .gitignore                    # Git ignore rules
-└── README.md                     # This file
+│   ├── conftest.py               # Configuración de Pytest
+│   ├── test_models.py            # Tests unitarios de modelos (7 tests)
+│   ├── test_services.py          # Tests unitarios de servicios (8 tests)
+│   └── test_api.py               # Tests de integración (12 tests)
+├── docs/                         # Documentación
+│   └── GUIA_COMPLETA.md         # Guía completa (inicio, arquitectura, desarrollo)
+├── scripts/                      # Scripts de utilidad
+│   └── run.py                    # Lanzador de aplicación FastAPI
+├── config/                       # Archivos de configuración
+│   ├── .env.example              # Plantilla de variables de entorno
+│   └── requirements.txt          # Dependencias de Python
+├── .vscode/                      # Configuración de VS Code
+│   ├── settings.json             # Configuración de editor y Python
+│   ├── extensions.json           # Extensiones recomendadas
+│   └── launch.json               # Configuraciones de debug
+├── pyproject.toml                # Configuración del proyecto Python
+├── repositoriodesarrollo.toml    # Configuración adicional del proyecto
+├── RepositorioDesarrollo.code-workspace  # Workspace de VS Code
+├── .python-version               # Especificación de versión de Python
+├── .gitignore                    # Reglas de ignorado de Git
+└── README.md                     # Este archivo
 ```
 
-## 🚀 Quick Start
+## 🚀 Inicio Rápido
 
-### 1. Set Up Environment
+### 1. Configurar el Entorno
 
 ```bash
-# Clone the repository (if not already done)
+# Clonar el repositorio (si no lo ha hecho aún)
 git clone <repository-url>
 cd RepositorioDesarrollo
 
-# Create and activate virtual environment
+# Crear y activar entorno virtual
 python -m venv .venv
 .venv\Scripts\activate  # Windows
 # source .venv/bin/activate  # Linux/Mac
 
-# Install dependencies
+# Instalar dependencias
 pip install -r config/requirements.txt
 ```
 
-### 2. Configure Environment
+### 2. Configurar Variables de Entorno
 
 ```bash
-# Copy environment template
+# Copiar plantilla de entorno
 cp config/.env.example .env
 
-# Edit .env with your settings
+# Editar .env con tus configuraciones
 ```
 
-### 3. Run the Application
+### 3. Ejecutar la Aplicación
 
 ```bash
-# Using the run script
+# Usando el script de ejecución
 python scripts/run.py
 
-# Or using uvicorn directly
+# O usar uvicorn directamente
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The API will be available at `http://localhost:8000`
+La API estará disponible en `http://localhost:8000`
 
-### 4. Run Tests
+### 4. Ejecutar Tests
 
 ```bash
-# Run all tests
+# Ejecutar todos los tests
 pytest tests/ -v
 
-# Run with coverage
+# Ejecutar con cobertura
 pytest tests/ --cov=app --cov-report=html
 ```
 
-## 📚 Documentation
+## 📚 Documentación
 
-For detailed information, see:
+Para información completa sobre cómo usar y desarrollar en este proyecto, consulta:
 
-- **[START HERE](docs/01_START_HERE.md)** - 5-minute quick start guide (Spanish)
-- **[Quick Start Guide](docs/02_QUICK_START.md)** - Comprehensive setup and usage guide
-- **[Architecture](docs/03_ARCHITECTURE.md)** - Technical architecture and design patterns
-- **[Structure Summary](docs/04_STRUCTURE_SUMMARY.md)** - Project structure overview
+- **[📖 Guía Completa](docs/GUIA_COMPLETA.md)** - Todo lo que necesitas saber:
+  - Inicio rápido (5 minutos)
+  - Explicación detallada de la arquitectura de tres capas
+  - Ejemplos de endpoints de API
+  - Cómo agregar nuevas características
+  - Ejecución de tests
+  - Troubleshooting
+  - Recursos útiles
 
-## 🏗️ Architecture
+## 🏗️ Arquitectura de Tres Capas
 
-This project implements a **three-layer architecture**:
+Este proyecto implementa una **arquitectura de tres capas**, que separa la aplicación en tres niveles independientes de responsabilidad. Esto permite que el código sea más modular, testeable y mantenible.
+
+### ¿Qué significa "Arquitectura de Tres Capas"?
+
+La arquitectura de tres capas divide la aplicación en tres componentes horizontales que se comunican entre sí de forma jerárquica:
+
+1. **CAPA 1: Modelos (Models)** - La base que representa los datos
+2. **CAPA 2: Servicios (Services)** - La lógica que procesa esos datos
+3. **CAPA 3: Controladores (Controllers)** - Los puntos de acceso HTTP
+
+El flujo de información es **unidireccional**: Las solicitudes HTTP bajan por las capas, y las respuestas suben:
+
+```
+Solicitudes HTTP
+     ↓
+┌─────────────────────────────────────────────────────────┐
+│  CAPA 3: Controladores (Controllers/Routes)             │
+│  Responsabilidad: Recibir solicitudes HTTP y responder  │
+│  Archivos: user_routes.py                              │
+│  Ejemplo: @router.post("/users")                        │
+└──────────────────────┬──────────────────────────────────┘
+                       ↓ Delega al servicio
+┌─────────────────────────────────────────────────────────┐
+│  CAPA 2: Servicios (Business Logic)                     │
+│  Responsabilidad: Implementar reglas de negocio         │
+│  Archivos: user_service.py                              │
+│  Ejemplo: def create_user(user_data) -> User            │
+└──────────────────────┬──────────────────────────────────┘
+                       ↓ Accede a los datos
+┌─────────────────────────────────────────────────────────┐
+│  CAPA 1: Modelos (Domain Entities)                      │
+│  Responsabilidad: Representar y estructurar los datos   │
+│  Archivos: user.py                                      │
+│  Ejemplo: class User(BaseEntity): ...                   │
+└─────────────────────────────────────────────────────────┘
+     ↑
+     Devuelve respuesta
+```
+
+### Desglose de Cada Capa
+
+**CAPA 1: Modelos (Entidades de Dominio)**
+- **Ubicación**: `app/models/`
+- **Responsabilidad**: Definir la estructura de datos
+- **Qué hace**: Representa entidades del negocio (Usuario, Producto, etc.)
+- **Ejemplo**: `User` con atributos como `id`, `name`, `email`, `is_active`
+- **Principio**: DRY mediante `BaseEntity` que reutiliza id, timestamps
+
+**CAPA 2: Servicios (Lógica de Negocio)**
+- **Ubicación**: `app/services/`
+- **Responsabilidad**: Ejecutar la lógica de negocio compleja
+- **Qué hace**: Procesa datos, valida reglas, orquesta operaciones
+- **Ejemplo**: `UserService` que crea, actualiza, activa usuarios
+- **Principio**: Una clase de servicio por entidad para Single Responsibility
+
+**CAPA 3: Controladores (Endpoints HTTP)**
+- **Ubicación**: `app/controllers/`
+- **Responsabilidad**: Manejar solicitudes HTTP y respuestas
+- **Qué hace**: Recibe JSON, delega al servicio, devuelve resultado
+- **Ejemplo**: `@router.post("/users")` que crea un usuario
+- **Principio**: Solo HTTP, sin lógica de negocio
+
+### Ventajas de Esta Estructura
+
+✅ **Separación de responsabilidades**: Cada capa tiene un propósito claro
+✅ **Reutilización**: `BaseEntity` y `BaseService` se usan en múltiples características
+✅ **Testabilidad**: Cada capa se puede probar de forma independiente
+✅ **Mantenibilidad**: Cambios en la lógica no afectan endpoints
+✅ **Escalabilidad**: Fácil agregar nuevas características siguiendo el patrón
 
 ```
 HTTP Requests
     ↓
 ┌─────────────────────────────┐
-│  Controllers (Routes)       │  ← API endpoints, validation
+│  Controllers (Routes)       │  ← Endpoints HTTP, validación
 │  user_routes.py             │
 └──────────────┬──────────────┘
                ↓
 ┌─────────────────────────────┐
-│  Services (Business Logic)  │  ← Core logic, processing
+│  Services (Business Logic)  │  ← Lógica central, procesamiento
 │  user_service.py            │
 └──────────────┬──────────────┘
                ↓
 ┌─────────────────────────────┐
-│  Models (Domain Entities)   │  ← Data representation
+│  Models (Domain Entities)   │  ← Representación de datos
 │  user.py                    │
 └─────────────────────────────┘
 ```
 
-### Key Features
+### Características Clave
 
-- **Generic Base Classes**: `BaseEntity` and `BaseService<T>` for reusability
-- **Pydantic Validation**: Type-safe request/response schemas
-- **Clean Code**: KISS, DRY, YAGNI, SOLID principles
-- **Comprehensive Tests**: 27 tests covering models, services, and endpoints
-- **Professional Structure**: Organized directories following best practices
+- **Clases Base Genéricas**: `BaseEntity` y `BaseService<T>` para reutilización
+- **Validación Pydantic**: Esquemas type-safe para solicitudes/respuestas
+- **Clean Code**: KISS, DRY, YAGNI, principios SOLID
+- **Tests Completos**: 27 tests cubriendo modelos, servicios y endpoints
+- **Estructura Profesional**: Directorios organizados siguiendo mejores prácticas
 
-## 🧪 API Endpoints
+## 🧪 Endpoints de API
 
-### User Endpoints
+### Endpoints de Usuario
 
 ```
-GET    /api/users              - Get all users
-POST   /api/users              - Create new user
-GET    /api/users/{user_id}    - Get user by ID
-PUT    /api/users/{user_id}    - Update user
-DELETE /api/users/{user_id}    - Delete user
-POST   /api/users/{user_id}/activate    - Activate user
-POST   /api/users/{user_id}/deactivate  - Deactivate user
+GET    /api/users              - Obtener todos los usuarios
+POST   /api/users              - Crear nuevo usuario
+GET    /api/users/{user_id}    - Obtener usuario por ID
+PUT    /api/users/{user_id}    - Actualizar usuario
+DELETE /api/users/{user_id}    - Eliminar usuario
+POST   /api/users/{user_id}/activate    - Activar usuario
+POST   /api/users/{user_id}/deactivate  - Desactivar usuario
 ```
 
-## 🛠️ Technologies & Tools
+## 🛠️ Tecnologías y Herramientas
 
 - **Framework**: FastAPI
-- **Validation**: Pydantic
+- **Validación**: Pydantic
 - **Testing**: pytest
-- **Code Quality**: Ruff, Black
-- **Python Version**: 3.10+
-- **Editor**: Visual Studio Code with Python extension
+- **Calidad de Código**: Ruff, Black
+- **Versión de Python**: 3.10+
+- **Editor**: Visual Studio Code con extensión de Python
 
-## 📋 Development Principles
+## 📋 Principios de Desarrollo
 
 - **Clean Code**: KISS, DRY, YAGNI, SOLID
 - **TDD**: Test-Driven Development
 - **FDD**: Feature-Driven Development
-- **Architecture**: Three-layer MVC pattern
+- **Arquitectura**: Patrón de tres capas MVC
 
-## 🔧 VS Code Integration
+## 🔧 Integración con VS Code
 
-This project includes VS Code configuration for:
+Este proyecto incluye configuración de VS Code para:
 
-- Python formatting with Ruff
-- Pytest integration
-- Debug launch configurations
-- Recommended extensions
+- Formateo Python con Ruff
+- Integración de Pytest
+- Configuraciones de lanzamiento para debug
+- Extensiones recomendadas
 
-Open `.vscode/settings.json` to view editor settings.
+Abra `.vscode/settings.json` para ver la configuración del editor.
 
-## 📝 Original Project Goals
+## 📝 Objetivos Originales del Proyecto
 
-- Extract text from PDFs
-- Summarize using AI models (Gemini)
-- Professional three-layer architecture
-- Clean code principles
-- Comprehensive documentation
+- Extraer texto de archivos PDF
+- Resumir usando modelos de IA (Gemini)
+- Arquitectura profesional de tres capas
+- Principios de Clean Code
+- Documentación completa
 
-## 🤝 Contributing
+## 🤝 Contribuyendo
 
-When adding new features:
+Al agregar nuevas características:
 
-1. Create a new branch
-2. Follow the three-layer architecture
-3. Add unit and integration tests
-4. Update documentation
-5. Submit a pull request
+1. Crear una nueva rama
+2. Seguir la arquitectura de tres capas
+3. Agregar tests unitarios e integración
+4. Actualizar documentación
+5. Crear un pull request
 
-## 📄 License
+## 📄 Licencia
 
-This is a development project. Check `LICENSE` file for details.
+Este es un proyecto de desarrollo. Consulte el archivo `LICENSE` para más detalles.
 
-## 📞 Support
+## 📞 Soporte
 
-For more information, see the documentation in the `docs/` directory or check the code comments.
+Para más información, consulte la documentación en el directorio `docs/` o revise los comentarios en el código.
 
 ---
 
-**Last Updated**: April 1, 2026
-**Python Version**: 3.10+
-**Status**: Active Development
+**Última Actualización**: 1 de abril de 2026
+**Versión de Python**: 3.10+
+**Estado**: Desarrollo Activo
