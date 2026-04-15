@@ -77,11 +77,13 @@ class User(BaseEntity):
             updated_at: Marca de tiempo de actualización.
 
         Raises:
-            ValidationException: Si el email está vacío o el nombre es demasiado corto.
+            ValueError: Si el email está vacío o el nombre es demasiado corto.
         """
-        # Validar datos antes de inicializar
-        self._validate_email(email)
-        self._validate_full_name(full_name)
+        try:
+            self._validate_email(email)
+            self._validate_full_name(full_name)
+        except ValidationException as e:
+            raise ValueError(e.message) from e
 
         super().__init__(id=id, created_at=created_at, updated_at=updated_at)
         self.email: str = email

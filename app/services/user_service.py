@@ -11,9 +11,26 @@ from typing import Callable, List, Optional
 from uuid import UUID
 
 from app.core.exceptions import DuplicateResourceException
+from app.core.repository import InMemoryRepository
 from app.models import User
 
 from .base_service import BaseService
+
+_shared_repository: Optional[InMemoryRepository] = None
+
+
+def _get_shared_repository() -> InMemoryRepository:
+    """Obtiene el repositorio compartido (singleton)."""
+    global _shared_repository
+    if _shared_repository is None:
+        _shared_repository = InMemoryRepository()
+    return _shared_repository
+
+
+def reset_shared_repository() -> None:
+    """Reinicia el repositorio compartido (útil para tests)."""
+    global _shared_repository
+    _shared_repository = None
 
 
 class UserService(BaseService[User]):
@@ -23,6 +40,12 @@ class UserService(BaseService[User]):
     Proporciona métodos específicos de negocio para usuarios como búsqueda
     por email, activación/desactivación, etc.
     """
+
+    def __init__(self, repository: Optional[InMemoryRepository] = None) -> None:
+        """Inicializa el servicio con el repositorio compartido."""
+        if repository is None:
+            repository = _get_shared_repository()
+        super().__init__(repository)
 
     def get_by_email(self, email: str) -> Optional[User]:
         """
@@ -34,7 +57,7 @@ class UserService(BaseService[User]):
         Returns:
             El usuario si existe, None en caso contrario.
         """
-        for user in self._repository.values():
+        for user in self._repository.get_all():
             if user.email.lower() == email.lower():
                 return user
         return None
@@ -105,11 +128,21 @@ class UserService(BaseService[User]):
         """
         return self._apply_user_state_change(user_id, lambda u: u.activate())
 
+    def get_total_active_users(self) -> int:
+        """
+        Obtiene el número total de usuarios activos.
+
+        Returns:
+            Número de usuarios activos.
+        """
+        return len(self.get_active_users())
+
     def create_user(
         self,
         email: str,
         full_name: str,
         description: Optional[str] = None,
+        is_active: bool = True,
     ) -> User:
         """
         Crea un nuevo usuario.
@@ -118,6 +151,7 @@ class UserService(BaseService[User]):
             email: Correo del usuario.
             full_name: Nombre completo del usuario.
             description: Descripción opcional del usuario.
+            is_active: Estado activo del usuario (por defecto True).
 
         Returns:
             El usuario creado.
@@ -134,4 +168,6 @@ class UserService(BaseService[User]):
             full_name=full_name,
             description=description,
         )
+        if not is_active:
+            user.deactivate()
         return self.create(user)

@@ -8,6 +8,7 @@ import pytest
 
 from app.models import User
 from app.services import UserService
+from app.services.user_service import reset_shared_repository
 
 
 def pytest_configure(config):
@@ -20,6 +21,14 @@ def pytest_configure(config):
         "markers",
         "integration: Marca tests de integración",
     )
+
+
+@pytest.fixture(autouse=True)
+def reset_repository():
+    """Reinicia el repositorio antes de cada test."""
+    reset_shared_repository()
+    yield
+    reset_shared_repository()
 
 
 # ============================================================================

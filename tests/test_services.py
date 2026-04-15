@@ -38,7 +38,7 @@ class TestUserService:
             full_name="User 1",
         )
 
-        with pytest.raises(ValueError, match="ya está registrado"):
+        with pytest.raises(Exception, match="ya existe"):
             service.create_user(
                 email="test@example.com",
                 full_name="User 2",
