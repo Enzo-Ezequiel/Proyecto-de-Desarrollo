@@ -1,15 +1,16 @@
 # Dependencias principales
-fastapi==0.104.0
-uvicorn[standard]==0.24.0
-pydantic==2.0.0
-pydantic-settings==2.0.0
-python-multipart==0.0.6
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+pydantic>=2.13.0
+pydantic-settings>=2.5.0
+python-multipart>=0.0.20
+email-validator>=2.0.0
 
 # Dependencias de desarrollo
-pytest==7.0.0
-pytest-cov==4.0.0
-black==23.0.0
-flake8==6.0.0
-isort==5.12.0
-mypy==1.0.0
-httpx==0.24.0
+pytest>=7.4.0
+pytest-cov>=4.1.0
+httpx>=0.28.0
+black>=23.12.0
+flake8>=6.0.0
+isort>=5.12.0
+mypy>=1.0.0
