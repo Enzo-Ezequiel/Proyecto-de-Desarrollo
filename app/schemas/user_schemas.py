@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 class UserCreateRequest(BaseModel):
@@ -20,7 +20,7 @@ class UserCreateRequest(BaseModel):
     Valida los datos enviados por el cliente al crear un usuario.
     """
 
-    email: EmailStr = Field(..., description="Correo electrónico del usuario")
+    email: str = Field(..., description="Correo electrónico del usuario")
     full_name: str = Field(
         ...,
         min_length=2,

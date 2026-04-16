@@ -27,16 +27,6 @@ class TestUserModel:
         assert user.is_active is True
         assert user.id is not None
 
-    def test_user_creation_with_invalid_email(self) -> None:
-        """Verifica que se lanza excepción con email inválido."""
-        with pytest.raises(ValueError, match="Email inválido"):
-            User(email="invalid_email", full_name="Test User")
-
-    def test_user_creation_with_empty_email(self) -> None:
-        """Verifica que se lanza excepción con email vacío."""
-        with pytest.raises(ValueError, match="Email inválido"):
-            User(email="", full_name="Test User")
-
     def test_user_creation_with_short_name(self) -> None:
         """Verifica que se lanza excepción con nombre muy corto."""
         with pytest.raises(ValueError, match="al menos 2 caracteres"):

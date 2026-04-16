@@ -27,20 +27,6 @@ class User(BaseEntity):
     """
 
     @staticmethod
-    def _validate_email(email: str) -> None:
-        """
-        Valida el formato del correo electrónico.
-
-        Args:
-            email: El correo a validar.
-
-        Raises:
-            ValidationException: Si el email es inválido.
-        """
-        if not email or "@" not in email:
-            raise ValidationException("Email inválido")
-
-    @staticmethod
     def _validate_full_name(full_name: str) -> None:
         """
         Valida el nombre completo del usuario.
@@ -77,10 +63,9 @@ class User(BaseEntity):
             updated_at: Marca de tiempo de actualización.
 
         Raises:
-            ValueError: Si el email está vacío o el nombre es demasiado corto.
+            ValueError: Si el nombre es demasiado corto.
         """
         try:
-            self._validate_email(email)
             self._validate_full_name(full_name)
         except ValidationException as e:
             raise ValueError(e.message) from e
