@@ -12,17 +12,13 @@ RepositorioDesarrollo/
 │   ├── models/                   # Entidades de dominio
 │   │   ├── __init__.py
 │   │   ├── base_model.py         # Clase base genérica
-│   │   └── user.py               # Modelo de usuario
 │   ├── services/                 # Capa de lógica de negocio
 │   │   ├── __init__.py
 │   │   ├── base_service.py       # Servicio genérico CRUD
-│   │   └── user_service.py       # Lógica de negocio de usuarios
 │   ├── controllers/              # Capa de endpoints HTTP
 │   │   ├── __init__.py
-│   │   └── user_routes.py        # Rutas de API de usuarios (7 endpoints)
 │   ├── schemas/                  # Esquemas de validación Pydantic
 │   │   ├── __init__.py
-│   │   └── user_schemas.py       # Esquemas de solicitud/respuesta
 │   └── core/                     # Configuración central
 │       ├── __init__.py
 │       ├── config.py             # Configuración de la aplicación
@@ -55,44 +51,37 @@ RepositorioDesarrollo/
 
 ## 🚀 Inicio Rápido
 
-### 1. Configurar el Entorno
+### 1. Clonar el repositorio
 
 ```bash
 # Clonar el repositorio (si no lo ha hecho aún)
 git clone <repository-url>
 cd RepositorioDesarrollo
-
-# Crear y activar entorno virtual
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-# source .venv/bin/activate  # Linux/Mac
-
-# Instalar dependencias
-pip install -r config/requirements.txt
 ```
 
-### 2. Configurar Variables de Entorno
+### 2. Instalar dependencias
 
 ```bash
-# Copiar plantilla de entorno
-cp config/.env.example .env
+# Copiar en terminal
+uv sync
 
-# Editar .env con tus configuraciones
+# Crea el entorno virtual .venv
+#instala las dependencias especificadas en uv.lock
 ```
 
 ### 3. Ejecutar la Aplicación
 
 ```bash
-# Usando el script de ejecución
-python scripts/run.py
-
-# O usar uvicorn directamente
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Usando uvicorn 
+uv run uvicorn app.main:app --reload
 ```
 
-La API estará disponible en `http://localhost:8000`
+### 4. Acceder a la API
 
-### 4. Ejecutar Tests
+API: http://127.0.0.1:8000
+Documentación Swagger: http://127.0.0.1:8000/docs
+
+### 5. Ejecutar Tests
 
 ```bash
 # Ejecutar todos los tests
