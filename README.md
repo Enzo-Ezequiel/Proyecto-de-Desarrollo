@@ -11,27 +11,28 @@ RepositorioDesarrollo/
 │   ├── main.py                   # Punto de entrada de FastAPI
 │   ├── models/                   # Entidades de dominio
 │   │   ├── __init__.py
-│   │   ├── base_model.py         # Clase base genérica
+│   │   └── base_model.py         # Clase base genérica (BaseEntity)
 │   ├── services/                 # Capa de lógica de negocio
 │   │   ├── __init__.py
-│   │   ├── base_service.py       # Servicio genérico CRUD
+│   │   └── base_service.py       # Servicio genérico CRUD (BaseService<T>)
 │   ├── controllers/              # Capa de endpoints HTTP
-│   │   ├── __init__.py
+│   │   └── __init__.py
 │   ├── schemas/                  # Esquemas de validación Pydantic
 │   │   ├── __init__.py
 │   └── core/                     # Configuración central
 │       ├── __init__.py
 │       ├── config.py             # Configuración de la aplicación
 │       ├── exceptions.py         # Excepciones personalizadas
+│       ├── repository.py          # Repositorio en memoria
 │       └── utils.py              # Funciones auxiliares
-├── tests/                        # Suite de tests completa
+├── tests/                        # Suite de tests
 │   ├── __init__.py
 │   ├── conftest.py               # Configuración de Pytest
-│   ├── test_models.py            # Tests unitarios de modelos (7 tests)
-│   ├── test_services.py          # Tests unitarios de servicios (8 tests)
-│   └── test_api.py               # Tests de integración (12 tests)
+│   ├── test_models.py            # Tests unitarios de modelos
+│   ├── test_services.py          # Tests unitarios de servicios
+│   └── test_api.py               # Tests de integración
 ├── docs/                         # Documentación
-│   └── GUIA_COMPLETA.md         # Guía completa (inicio, arquitectura, desarrollo)
+│   └── GUIA_COMPLETA.md         # Guía completa
 ├── scripts/                      # Scripts de utilidad
 │   └── run.py                    # Lanzador de aplicación FastAPI
 ├── config/                       # Archivos de configuración
@@ -124,22 +125,19 @@ Solicitudes HTTP
 ┌─────────────────────────────────────────────────────────┐
 │  CAPA 3: Controladores (Controllers/Routes)             │
 │  Responsabilidad: Recibir solicitudes HTTP y responder  │
-│  Archivos: user_routes.py                              │
-│  Ejemplo: @router.post("/users")                        │
+│  Ejemplo: @router.post("/entities")                     │
 └──────────────────────┬──────────────────────────────────┘
                        ↓ Delega al servicio
 ┌─────────────────────────────────────────────────────────┐
-│  CAPA 2: Servicios (Business Logic)                     │
-│  Responsabilidad: Implementar reglas de negocio         │
-│  Archivos: user_service.py                              │
-│  Ejemplo: def create_user(user_data) -> User            │
+│  CAPA 2: Servicios (Business Logic)                 │
+│  Responsabilidad: Implementar reglas de negocio        │
+│  Ejemplo: def create(entity_data) -> BaseEntity       │
 └──────────────────────┬──────────────────────────────────┘
                        ↓ Accede a los datos
 ┌─────────────────────────────────────────────────────────┐
-│  CAPA 1: Modelos (Domain Entities)                      │
-│  Responsabilidad: Representar y estructurar los datos   │
-│  Archivos: user.py                                      │
-│  Ejemplo: class User(BaseEntity): ...                   │
+│  CAPA 1: Modelos (Domain Entities)                  │
+│  Responsabilidad: Representar y estructurar los datos│
+│  Ejemplo: class BaseEntity: ...                     │
 └─────────────────────────────────────────────────────────┘
      ↑
      Devuelve respuesta
@@ -150,22 +148,21 @@ Solicitudes HTTP
 **CAPA 1: Modelos (Entidades de Dominio)**
 - **Ubicación**: `app/models/`
 - **Responsabilidad**: Definir la estructura de datos
-- **Qué hace**: Representa entidades del negocio (Usuario, Producto, etc.)
-- **Ejemplo**: `User` con atributos como `id`, `name`, `email`, `is_active`
+- **Qué hace**: Representa entidades del negocio usando clases que extienden `BaseEntity`
+- **Ejemplo**: `BaseEntity` con atributos como `id`, `created_at`, `updated_at`
 - **Principio**: DRY mediante `BaseEntity` que reutiliza id, timestamps
 
 **CAPA 2: Servicios (Lógica de Negocio)**
 - **Ubicación**: `app/services/`
 - **Responsabilidad**: Ejecutar la lógica de negocio compleja
-- **Qué hace**: Procesa datos, valida reglas, orquesta operaciones
-- **Ejemplo**: `UserService` que crea, actualiza, activa usuarios
-- **Principio**: Una clase de servicio por entidad para Single Responsibility
+- **Qué hace**: Procesa datos, valida reglas, orquesta operaciones usando genéricos
+- **Ejemplo**: `BaseService<T>` que provee operaciones CRUD genéricas
+- **Principio**: Una clase de servicio genérica reutilizable por entidad
 
 **CAPA 3: Controladores (Endpoints HTTP)**
 - **Ubicación**: `app/controllers/`
 - **Responsabilidad**: Manejar solicitudes HTTP y respuestas
 - **Qué hace**: Recibe JSON, delega al servicio, devuelve resultado
-- **Ejemplo**: `@router.post("/users")` que crea un usuario
 - **Principio**: Solo HTTP, sin lógica de negocio
 
 ### Ventajas de Esta Estructura
@@ -180,18 +177,18 @@ Solicitudes HTTP
 HTTP Requests
     ↓
 ┌─────────────────────────────┐
-│  Controllers (Routes)       │  ← Endpoints HTTP, validación
-│  user_routes.py             │
+│  Controllers (Routes)       │  ← Endpoints HTTP
+│  BaseService<T>            │
 └──────────────┬──────────────┘
                ↓
 ┌─────────────────────────────┐
-│  Services (Business Logic)  │  ← Lógica central, procesamiento
-│  user_service.py            │
+│  Services (BaseService)    │  ← Lógica central, procesamiento
+│  BaseService<T>            │
 └──────────────┬──────────────┘
                ↓
 ┌─────────────────────────────┐
-│  Models (Domain Entities)   │  ← Representación de datos
-│  user.py                    │
+│  Models (BaseEntity)       │  ← Representación de datos
+│  BaseEntity               │
 └─────────────────────────────┘
 ```
 
@@ -200,22 +197,22 @@ HTTP Requests
 - **Clases Base Genéricas**: `BaseEntity` y `BaseService<T>` para reutilización
 - **Validación Pydantic**: Esquemas type-safe para solicitudes/respuestas
 - **Clean Code**: KISS, DRY, YAGNI, principios SOLID
-- **Tests Completos**: 27 tests cubriendo modelos, servicios y endpoints
+- **Tests Completos**: Suite de tests cubriendo modelos, servicios y endpoints
 - **Estructura Profesional**: Directorios organizados siguiendo mejores prácticas
 
 ## 🧪 Endpoints de API
 
-### Endpoints de Usuario
+### Endpoints Genéricos (vía BaseService)
 
 ```
-GET    /api/users              - Obtener todos los usuarios
-POST   /api/users              - Crear nuevo usuario
-GET    /api/users/{user_id}    - Obtener usuario por ID
-PUT    /api/users/{user_id}    - Actualizar usuario
-DELETE /api/users/{user_id}    - Eliminar usuario
-POST   /api/users/{user_id}/activate    - Activar usuario
-POST   /api/users/{user_id}/deactivate  - Desactivar usuario
+GET    /api/{entity}           - Obtener todos los registros
+POST   /api/{entity}           - Crear nuevo registro
+GET    /api/{entity}/{id}      - Obtener registro por ID
+PUT    /api/{entity}/{id}      - Actualizar registro
+DELETE /api/{entity}/{id}      - Eliminar registro
 ```
+
+Los endpoints específicos se definen extendiendo las clases base genéricas.
 
 ## 🛠️ Tecnologías y Herramientas
 
