@@ -6,6 +6,7 @@ Principios aplicados:
 - Encapsulación: Los atributos están bien definidos y documentados.
 """
 
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -14,7 +15,7 @@ from app.core.exceptions import ValidationException
 
 from .base_model import BaseEntity
 
-
+@dataclass
 class User(BaseEntity):
     """
     Representa un usuario en el sistema.
