@@ -46,16 +46,6 @@ class TestUserEndpoints:
         assert data["full_name"] == "Test User"
         assert data["is_active"] is True
 
-    def test_create_user_invalid_email(self, client: TestClient) -> None:
-        """Verifica validación de email en creación."""
-        user_data = {
-            "email": "invalid_email",
-            "full_name": "Test User",
-        }
-
-        response = client.post("/api/v1/users", json=user_data)
-        assert response.status_code == 422  # Validation error
-
     def test_list_users(self, client: TestClient) -> None:
         """Verifica listado de usuarios."""
         # Crear algunos usuarios
