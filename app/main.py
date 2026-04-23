@@ -15,7 +15,6 @@ Principios aplicados:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.controllers import user_routes
 from app.core import settings
 
 # Crear la aplicación FastAPI
@@ -58,13 +57,6 @@ def health_check() -> dict[str, str]:
         Estado de salud de la aplicación.
     """
     return {"status": "ok", "message": "Aplicación funcionando correctamente"}
-
-
-# Registrar routers
-app.include_router(
-    user_routes.router,
-    prefix=settings.api_prefix,
-)
 
 
 if __name__ == "__main__":
