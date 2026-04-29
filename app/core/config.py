@@ -39,6 +39,11 @@ DEFAULT_CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 DEFAULT_CORS_ALLOW_CREDENTIALS = True
 DEFAULT_CORS_ALLOW_HEADERS = ["*"]
 
+# Configuración de MongoDB
+DEFAULT_MONGODB_HOST = "mongodb-local"
+DEFAULT_MONGODB_PORT = 27017
+DEFAULT_MONGODB_NAME = "repositorio_desarrollo"
+
 
 class Settings(BaseSettings):
     """
@@ -71,6 +76,11 @@ class Settings(BaseSettings):
 
     # Base de datos (preparado para futuro uso)
     database_url: Optional[str] = None
+
+    # MongoDB
+    mongodb_host: str = DEFAULT_MONGODB_HOST
+    mongodb_port: int = DEFAULT_MONGODB_PORT
+    mongodb_name: str = DEFAULT_MONGODB_NAME
 
     class Config:
         """Configuración de Pydantic Settings."""

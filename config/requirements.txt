@@ -5,6 +5,7 @@ pydantic>=2.13.0
 pydantic-settings>=2.5.0
 python-multipart>=0.0.20
 email-validator>=2.0.0
+motor>=3.6.0
 
 # Dependencias de desarrollo
 pytest>=7.4.0
