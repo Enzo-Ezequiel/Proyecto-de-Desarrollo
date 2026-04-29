@@ -17,7 +17,7 @@ T = TypeVar("T")  # Type variable para genéricos
 
 class BaseService(Generic[T]):
     """
-    Servicio base genérico que proporciona operaciones CRUD comunes.
+    Servicio base genérico que proporciona operaciones CRUD comunes (Asíncrono).
 
     Tipo genérico T: El tipo de entidad que maneja el servicio.
     Usa el patrón Repository para abstraer el acceso a datos.
@@ -32,74 +32,43 @@ class BaseService(Generic[T]):
         """
         self._repository: Repository[T] = repository or InMemoryRepository[T]()
 
-    def create(self, entity: T) -> T:
+    async def create(self, entity: T) -> T:
         """
         Crea una nueva entidad.
-
-        Args:
-            entity: La entidad a crear.
-
-        Returns:
-            La entidad creada.
         """
-        return self._repository.add(entity)
+        return await self._repository.add(entity)
 
-    def get_by_id(self, entity_id: str) -> Optional[T]:
+    async def get_by_id(self, entity_id: str) -> Optional[T]:
         """
         Obtiene una entidad por su ID.
-
-        Args:
-            entity_id: El ID de la entidad.
-
-        Returns:
-            La entidad si existe, None en caso contrario.
         """
-        return self._repository.get_by_id(entity_id)
+        return await self._repository.get_by_id(entity_id)
 
-    def get_all(self) -> List[T]:
+    async def get_all(self) -> List[T]:
         """
         Obtiene todas las entidades.
-
-        Returns:
-            Lista de todas las entidades.
         """
-        return self._repository.get_all()
+        return await self._repository.get_all()
 
-    def update(self, entity: T) -> T:
+    async def update(self, entity: T) -> T:
         """
         Actualiza una entidad existente.
-
-        Args:
-            entity: La entidad a actualizar.
-
-        Returns:
-            La entidad actualizada.
-
-        Raises:
-            ResourceNotFoundException: Si la entidad no existe.
         """
-        if self._repository.get_by_id(str(entity.id)) is None:
+        # ⚠️ Cambio importante: ¡Ahora debemos usar await para verificar si existe!
+        existing_entity = await self._repository.get_by_id(str(entity.id))
+        if existing_entity is None:
             raise ResourceNotFoundException("Entidad", str(entity.id))
 
-        return self._repository.update(entity)
+        return await self._repository.update(entity)
 
-    def delete(self, entity_id: str) -> bool:
+    async def delete(self, entity_id: str) -> bool:
         """
         Elimina una entidad.
-
-        Args:
-            entity_id: El ID de la entidad a eliminar.
-
-        Returns:
-            True si la entidad fue eliminada, False si no existía.
         """
-        return self._repository.delete(entity_id)
+        return await self._repository.delete(entity_id)
 
-    def count(self) -> int:
+    async def count(self) -> int:
         """
         Cuenta el número total de entidades.
-
-        Returns:
-            Número de entidades en el repositorio.
         """
-        return self._repository.count()
+        return await self._repository.count()

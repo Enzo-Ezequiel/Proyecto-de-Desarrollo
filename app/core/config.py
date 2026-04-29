@@ -69,8 +69,9 @@ class Settings(BaseSettings):
     cors_allow_methods: list[str] = DEFAULT_CORS_ALLOW_METHODS
     cors_allow_headers: list[str] = DEFAULT_CORS_ALLOW_HEADERS
 
-    # Base de datos (preparado para futuro uso)
-    database_url: Optional[str] = None
+    # Base de datos
+    database_url: str = "mongodb://localhost:27017"
+    mongo_db_name: str = "repositorio_db"
 
     class Config:
         """Configuración de Pydantic Settings."""

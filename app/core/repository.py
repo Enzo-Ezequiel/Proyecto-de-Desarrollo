@@ -12,123 +12,58 @@ from typing import Dict, Generic, List, Optional, TypeVar
 
 T = TypeVar("T")
 
-
 class Repository(ABC, Generic[T]):
-    """
-    Interfaz abstracta para repositorios genéricos.
-
-    Define los métodos que todo repositorio debe implementar.
-    """
+    """Interfaz abstracta para repositorios genéricos asíncronos."""
 
     @abstractmethod
-    def add(self, entity: T) -> T:
-        """Agrega una entidad al repositorio."""
+    async def add(self, entity: T) -> T:
         pass
 
     @abstractmethod
-    def get_by_id(self, entity_id: str) -> Optional[T]:
-        """Obtiene una entidad por su ID."""
+    async def get_by_id(self, entity_id: str) -> Optional[T]:
         pass
 
     @abstractmethod
-    def get_all(self) -> List[T]:
-        """Obtiene todas las entidades."""
+    async def get_all(self) -> List[T]:
         pass
 
     @abstractmethod
-    def update(self, entity: T) -> T:
-        """Actualiza una entidad."""
+    async def update(self, entity: T) -> T:
         pass
 
     @abstractmethod
-    def delete(self, entity_id: str) -> bool:
-        """Elimina una entidad."""
+    async def delete(self, entity_id: str) -> bool:
         pass
 
     @abstractmethod
-    def count(self) -> int:
-        """Cuenta el número de entidades."""
+    async def count(self) -> int:
         pass
-
 
 class InMemoryRepository(Repository[T]):
-    """
-    Implementación de repositorio en memoria.
-
-    Útil para desarrollo, testing y aplicaciones sin persistencia.
-    """
+    """Implementación de repositorio en memoria (Asíncrono)."""
 
     def __init__(self) -> None:
-        """Inicializa el repositorio en memoria."""
         self._data: Dict[str, T] = {}
 
-    def add(self, entity: T) -> T:
-        """
-        Agrega una entidad al repositorio.
-
-        Args:
-            entity: La entidad a agregar.
-
-        Returns:
-            La entidad agregada.
-        """
+    async def add(self, entity: T) -> T:
         self._data[str(entity.id)] = entity
         return entity
 
-    def get_by_id(self, entity_id: str) -> Optional[T]:
-        """
-        Obtiene una entidad por su ID.
-
-        Args:
-            entity_id: El ID de la entidad.
-
-        Returns:
-            La entidad si existe, None en caso contrario.
-        """
+    async def get_by_id(self, entity_id: str) -> Optional[T]:
         return self._data.get(entity_id)
 
-    def get_all(self) -> List[T]:
-        """
-        Obtiene todas las entidades.
-
-        Returns:
-            Lista de todas las entidades.
-        """
+    async def get_all(self) -> List[T]:
         return list(self._data.values())
 
-    def update(self, entity: T) -> T:
-        """
-        Actualiza una entidad existente.
-
-        Args:
-            entity: La entidad a actualizar.
-
-        Returns:
-            La entidad actualizada.
-        """
+    async def update(self, entity: T) -> T:
         self._data[str(entity.id)] = entity
         return entity
 
-    def delete(self, entity_id: str) -> bool:
-        """
-        Elimina una entidad.
-
-        Args:
-            entity_id: El ID de la entidad a eliminar.
-
-        Returns:
-            True si la entidad fue eliminada, False si no existía.
-        """
+    async def delete(self, entity_id: str) -> bool:
         if entity_id in self._data:
             del self._data[entity_id]
             return True
         return False
 
-    def count(self) -> int:
-        """
-        Cuenta el número de entidades.
-
-        Returns:
-            Número de entidades en el repositorio.
-        """
+    async def count(self) -> int:
         return len(self._data)
