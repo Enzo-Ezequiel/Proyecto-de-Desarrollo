@@ -11,6 +11,7 @@ Antes de comenzar, asegúrate de tener instalado:
 - **Git**
 - **Visual Studio Code** (recomendado)
 - **Sistema operativo: Windows** (PowerShell)
+- **Docker Desktop** - Para ejecutar la base de datos MongoDB localmente
 
 ## 🚀 Inicio Rápido
 
@@ -64,7 +65,19 @@ python -c "import fastapi; import uvicorn; print('✅ Entorno configurado correc
 
 Si ves el mensaje ✅ sin errores, el entorno está listo.
 
-### 4. Ejecutar la Aplicación
+### 4. Crear la carpeta .env
+
+Buscar en config el archivo env.example copia el contenido, luego en la carpeta raiz crea el archivo .env y pega el contenido
+
+### 5. Levantar la Base de Datos (Docker)
+
+Antes de iniciar la aplicación, asegúrate de que Docker Desktop esté abierto y ejecuta este comando para iniciar MongoDB:
+
+```powershell
+docker-compose up -d
+```
+
+### 6. Ejecutar la Aplicación
 
 ```powershell
 # Usando uv (recomendado - no requiere activar el entorno manualmente)
@@ -75,13 +88,13 @@ uv run uvicorn app.main:app --reload
 uvicorn app.main:app --reload
 ```
 
-### 5. Acceder a la API
+### 7. Acceder a la API
 
 - **API**: http://127.0.0.1:8000
 - **Documentación Swagger**: http://127.0.0.1:8000/docs
 - **Documentación ReDoc**: http://127.0.0.1:8000/redoc
 
-### 6. Ejecutar Tests
+### 8. Ejecutar Tests
 
 ```powershell
 # Ejecutar todos los tests

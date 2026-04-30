@@ -12,7 +12,7 @@ Principios aplicados:
 
 from datetime import datetime, timezone
 from typing import Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 
 class BaseEntity:
@@ -20,14 +20,14 @@ class BaseEntity:
     Clase base para todas las entidades del dominio.
 
     Atributos:
-        id: Identificador único de la entidad (UUID).
+        id: Identificador único de la entidad (String).
         created_at: Fecha y hora de creación de la entidad.
         updated_at: Fecha y hora de la última actualización.
     """
 
     def __init__(
         self,
-        id: Optional[UUID] = None,
+        id: Optional[str] = None,  # Cambiamos UUID por str
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
     ) -> None:
@@ -35,11 +35,12 @@ class BaseEntity:
         Inicializa una nueva entidad.
 
         Args:
-            id: ID único de la entidad. Si no se proporciona, se genera uno nuevo.
+            id: ID único de la entidad. Si no se proporciona, se genera uno nuevo en string.
             created_at: Marca de tiempo de creación. Si no se proporciona, usa la actual.
             updated_at: Marca de tiempo de actualización. Si no se proporciona, usa la actual.
         """
-        self.id: UUID = id or uuid4()
+        # Convertimos el UUID generado a texto, o guardamos el string que venga de MongoDB
+        self.id: str = str(id) if id else str(uuid4())
         self.created_at: datetime = created_at or datetime.now(timezone.utc)
         self.updated_at: datetime = updated_at or datetime.now(timezone.utc)
 
