@@ -6,8 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core import settings
 from app.core.database import connect_to_mongo, close_mongo_connection
 
-# Importamos nuestro nuevo controlador
+# Importamos nuestros controladores
 from app.controllers.user_routes import router as user_router
+# 👇 VER AQUÍ: 1. Agrega esta línea para importar el controlador de PDFs
+from app.controllers.pdf_routes import router as pdf_router 
 
 # Configuramos el ciclo de vida de la app para la Base de Datos
 @asynccontextmanager
@@ -39,6 +41,8 @@ app.add_middleware(
 
 # Registramos nuestras rutas (Controladores)
 app.include_router(user_router, prefix=settings.api_prefix)
+# 👇 VER AQUÍ: 2. Agrega esta línea para registrar la ruta en Swagger
+app.include_router(pdf_router)
 
 @app.get("/")
 async def root():
