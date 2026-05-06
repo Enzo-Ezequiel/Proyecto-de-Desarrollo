@@ -32,7 +32,9 @@ uv sync
 
 **Importante:** Una vez ejecutado `uv sync`, debes **activar el entorno virtual** antes de continuar:
 
-#### Opción A: Activación Manual
+#### 3. Activar entorno virtual
+
+## Opción A: Activación Manual
 
 Abre PowerShell en la raíz del proyecto y ejecuta:
 
@@ -47,7 +49,7 @@ Abre PowerShell en la raíz del proyecto y ejecuta:
 
 Verás `(Proyecto-de-Desarrollo)` al inicio de tu línea de comandos cuando esté activo.
 
-#### Opción B: VS Code (Automático) ⭐⭐ **Recomendado**
+## Opción B: VS Code (Automático) ⭐⭐ **Recomendado**
 
 El proyecto está configurado para activar el entorno automáticamente:
 
@@ -55,7 +57,7 @@ El proyecto está configurado para activar el entorno automáticamente:
 2. Abre una terminal integrada (`Ctrl + `` `)
 3. El entorno se activará solo (verás `(Proyecto-de-Desarrollo)` en el prompt)
 
-### 3. Verificar que el entorno funciona
+### 4. Verificar que el entorno funciona
 
 Ejecuta en tu terminal:
 
@@ -65,11 +67,11 @@ python -c "import fastapi; import uvicorn; print('✅ Entorno configurado correc
 
 Si ves el mensaje ✅ sin errores, el entorno está listo.
 
-### 4. Crear la carpeta .env
+### 5. Crear la carpeta .env
 
 Buscar en config el archivo env.example copia el contenido, luego en la carpeta raiz crea el archivo .env y pega el contenido
 
-### 5. Levantar la Base de Datos (Docker)
+### 6. Levantar la Base de Datos (Docker)
 
 Antes de iniciar la aplicación, asegúrate de que Docker Desktop esté abierto y ejecuta este comando para iniciar MongoDB:
 
@@ -77,7 +79,7 @@ Antes de iniciar la aplicación, asegúrate de que Docker Desktop esté abierto 
 docker-compose up -d
 ```
 
-### 6. Ejecutar la Aplicación
+### 7. Ejecutar la Aplicación
 
 ```powershell
 # Usando uv (recomendado - no requiere activar el entorno manualmente)
@@ -88,13 +90,13 @@ uv run uvicorn app.main:app --reload
 uvicorn app.main:app --reload
 ```
 
-### 7. Acceder a la API
+### 8. Acceder a la API
 
 - **API**: http://127.0.0.1:8000
 - **Documentación Swagger**: http://127.0.0.1:8000/docs
 - **Documentación ReDoc**: http://127.0.0.1:8000/redoc
 
-### 8. Ejecutar Tests
+### 9. Ejecutar Tests
 
 ```powershell
 # Ejecutar todos los tests
