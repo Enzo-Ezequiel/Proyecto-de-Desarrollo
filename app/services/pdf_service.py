@@ -1,6 +1,6 @@
 import io
 import hashlib
-import PyPDF2
+import pypdf
 from fastapi import UploadFile
 
 from app.core.mongo_repository import MongoRepository
@@ -36,9 +36,9 @@ async def procesar_y_guardar_pdf(file: UploadFile):
     if pdf_duplicado:
         raise ValueError("Este documento PDF ya existe en la base de datos. No se permiten duplicados.")
     
-    # 6. Extraer el texto usando PyPDF2 directamente desde la memoria
+    # 6. Extraer el texto usando pypdf directamente desde la memoria
     texto_extraido = ""
-    lector_pdf = PyPDF2.PdfReader(io.BytesIO(contenido_bytes))
+    lector_pdf = pypdf.PdfReader(io.BytesIO(contenido_bytes))
     
     for pagina in lector_pdf.pages:
         texto = pagina.extract_text()
