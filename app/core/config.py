@@ -7,8 +7,6 @@ Principios aplicados:
 - DRY: Centraliza todas las configuraciones.
 """
 
-from typing import Optional
-
 from pydantic_settings import BaseSettings
 
 # ============================================================================
@@ -73,12 +71,8 @@ class Settings(BaseSettings):
     database_url: str = "mongodb://localhost:27017"
     mongo_db_name: str = "repositorio_db"
 
-    class Config:
-        """Configuración de Pydantic Settings."""
-
-        env_file = ".env"
-        case_sensitive = False
-
+    # Pon esto donde estaba la 'class Config:'
+    model_config = {"env_file": ".env"}
 
 # Instancia global de configuración
 settings = Settings()
