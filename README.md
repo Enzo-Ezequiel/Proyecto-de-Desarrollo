@@ -32,9 +32,9 @@ uv sync
 
 **Importante:** Una vez ejecutado `uv sync`, debes **activar el entorno virtual** antes de continuar:
 
-#### 3. Activar entorno virtual
+### 3. Activar entorno virtual
 
-## Opción A: Activación Manual
+#### Opción A: Activación Manual
 
 Abre PowerShell en la raíz del proyecto y ejecuta:
 
@@ -49,7 +49,7 @@ Abre PowerShell en la raíz del proyecto y ejecuta:
 
 Verás `(Proyecto-de-Desarrollo)` al inicio de tu línea de comandos cuando esté activo.
 
-## Opción B: VS Code (Automático) ⭐⭐ **Recomendado**
+#### Opción B: VS Code (Automático) ⭐⭐ **Recomendado**
 
 El proyecto está configurado para activar el entorno automáticamente:
 
