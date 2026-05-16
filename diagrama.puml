@@ -1,0 +1,86 @@
+@startuml Proyecto
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+title Diagrama de Arquitectura de Tres Capas - Gestor PDF
+
+package "Capa 1: Modelos (app/models/)" {
+    class BaseEntity {
+        + id: str
+        + created_at: datetime
+        + updated_at: datetime
+    }
+
+    class DocumentoPDF {
+        + nombre_pdf: str
+        + contenido_pdf: str
+        + checksum: str
+        + __init__(nombre_pdf, contenido_pdf, checksum, **kwargs)
+    }
+
+    DocumentoPDF -up-|> BaseEntity : Hereda de
+}
+
+package "Capa Core / Base de Datos (app/core/)" {
+    interface Repository<T> {
+        + add(entity: T): T
+        + get_by_id(id: str): T
+        + get_all(): List[T]
+        + update(entity: T): T
+        + delete(id: str): bool
+        + count(): int
+    }
+
+    class MongoRepository<T> {
+        - db: AsyncIOMotorDatabase
+        - collection_name: str
+        - entity_class: Type[T]
+        + __init__(db, collection_name, entity_class)
+        + add(entity: T): T
+        + get_by_id(entity_id: str): T
+        + get_all(): List[T]
+        + update(entity: T): T
+        + delete(entity_id: str): bool
+        + count(): int
+    }
+
+    MongoRepository -up-|> Repository : Implementa
+}
+
+package "Capa 2: Servicios (app/services/)" {
+    class "pdf_service" as PDFService << (M, #FF7700) Module >> {
+        + procesar_y_guardar_pdf(file: UploadFile)
+        + obtener_todos_los_pdfs()
+        + obtener_pdf_por_id(pdf_id: str)
+        + eliminar_pdf(pdf_id: str)
+    }
+}
+
+package "Capa 3: Controladores (app/controllers/)" {
+    class "pdf_routes" as PDFRoutes << (M, #FF7700) Module >> {
+        + registrar_pdf(file: UploadFile)
+        + listar_pdfs()
+        + obtener_pdf(pdf_id: str)
+        + borrar_pdf(pdf_id: str)
+    }
+}
+
+package "Frontend (Streamlit)" {
+    class "frontend.py" as Frontend << (M, #FF7700) Module >> {
+        + UI_Subir_Documento
+        + UI_Listar_Documentos
+        + UI_Eliminar_Documento
+    }
+}
+
+' --- Relaciones y Flujo Unidireccional ---
+Frontend ..> PDFRoutes : HTTP Requests (requests)
+
+PDFRoutes ..> PDFService : Delega la lógica
+
+PDFService ..> MongoRepository : Instancia y usa
+PDFService ..> DocumentoPDF : Crea instancia
+
+MongoRepository ..> DocumentoPDF : Persiste en BD
+@enduml
