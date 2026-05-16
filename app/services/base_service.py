@@ -1,11 +1,4 @@
-"""
-Servicio Base: Clase base para todos los servicios de la aplicación.
-
-Proporciona métodos comunes y patrones de acceso a datos.
-Principios aplicados:
-- Template Method Pattern: Define la estructura general de los servicios.
-- Dependency Inversion: Los servicios usan abstracciones, no implementaciones concretas.
-"""
+"""Servicio base genérico para operaciones CRUD."""
 
 from typing import Generic, List, Optional, TypeVar
 
@@ -51,10 +44,8 @@ class BaseService(Generic[T]):
         return await self._repository.get_all()
 
     async def update(self, entity: T) -> T:
-        """
-        Actualiza una entidad existente.
-        """
-        # ⚠️ Cambio importante: ¡Ahora debemos usar await para verificar si existe!
+        """Actualiza una entidad existente."""
+        # Verifica que la entidad existe antes de actualizar
         existing_entity = await self._repository.get_by_id(str(entity.id))
         if existing_entity is None:
             raise ResourceNotFoundException("Entidad", str(entity.id))
