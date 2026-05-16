@@ -101,12 +101,6 @@ uvicorn app.main:app --reload
 ```powershell
 # Ejecutar todos los tests
 uv run pytest tests/ -v
-
-# O con el entorno activado:
-pytest tests/ -v
-
-# Ejecutar con cobertura
-pytest tests/ --cov=app --cov-report=html
 ```
 
 ---
