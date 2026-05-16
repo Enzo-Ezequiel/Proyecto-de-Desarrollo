@@ -114,26 +114,31 @@ RepositorioDesarrollo/
 │   ├── main.py              # Punto de entrada de FastAPI
 │   ├── models/              # Entidades de dominio
 │   │   ├── __init__.py
-│   │   └── base_model.py    # Clase base genérica (BaseEntity)
+│   │   ├── base_model.py   # Clase base genérica (BaseEntity)
+│   │   └── pdf_document.py  # Entidad DocumentoPDF
 │   ├── services/            # Capa de lógica de negocio
 │   │   ├── __init__.py
-│   │   └── base_service.py  # Servicio genérico CRUD (BaseService<T>)
+│   │   ├── base_service.py  # Servicio genérico CRUD (BaseService<T>)
+│   │   └── pdf_service.py   # Lógica de procesamiento de PDFs
 │   ├── controllers/         # Capa de endpoints HTTP
-│   │   └── __init__.py
+│   │   ├── pdf_routes.py    # Endpoints para PDFs
+│   │   └── user_routes.py   # Endpoints para usuarios
 │   ├── schemas/             # Esquemas de validación Pydantic
-│   │   └── __init__.py
+│   │   ├── __init__.py
+│   │   └── pdf_schemas.py   # Esquemas para PDFs
 │   └── core/                # Configuración central
 │       ├── __init__.py
 │       ├── config.py        # Configuración de la aplicación
+│       ├── database.py      # Conexión a MongoDB
 │       ├── exceptions.py    # Excepciones personalizadas
-│       ├── repository.py    # Repositorio en memoria
-│       └── utils.py         # Funciones auxiliares
+│       ├── repository.py   # Repositorio en memoria
+│       ├── utils.py        # Funciones auxiliares
+│       ├── mongo_repository.py  # Repositorio MongoDB
+│       └── middleware/      # Middlewares HTTP
+│           └── middleware.py  # Limitador de tamaño de archivo
 ├── tests/                   # Suite de tests
 │   ├── __init__.py
-│   ├── conftest.py         # Configuración de Pytest
-│   ├── test_models.py      # Tests unitarios de modelos
-│   ├── test_services.py    # Tests unitarios de servicios
-│   └── test_api.py         # Tests de integración
+│   └── test_pdfs.py        # Tests de PDFs
 ├── docs/                    # Documentación
 │   └── GUIA_COMPLETA.md    # Guía completa
 ├── scripts/                 # Scripts de utilidad
