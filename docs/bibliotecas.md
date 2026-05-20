@@ -1,223 +1,163 @@
-# Bibliotecas Base para la Estructura del Proyecto
+# Dependencias del Proyecto
 
-## Objetivo
+Definición de librerías usadas en RepositorioDesarrollo con justificación arquitectónica.
 
-Este documento define la base de bibliotecas recomendada para sostener una arquitectura Python sólida, escalable y mantenible, alineada con Clean Code, TDD y la estructura de tres capas del proyecto.
+## Dependencias Principales (Producción)
 
-La selección prioriza:
+### FastAPI
+Rol: Framework web principal
 
-- Tipado explícito y validación estricta.
-- Bajo acoplamiento entre capas.
-- Configuración centralizada y reproducible.
-- Testing rápido y confiable.
-- Observabilidad útil sin introducir complejidad innecesaria.
+Razón: Diseñado para type hints nativos, integración directa con Pydantic, documentación automática OpenAPI, soporte async/await.
 
-> Nota de alcance: se excluye el procesamiento de PDFs por ahora, para mantener el foco en el núcleo arquitectónico.
+Uso real: Manejo de endpoints HTTP, CORS middleware, gestión del ciclo de vida de la aplicación.
 
-## Selección recomendada
+### Pydantic v2
+Rol: Validación de datos
 
-La base recomendada para este proyecto queda así:
+Razón: Validación declarativa, mensajes de error claros, desempeño mejorado, integración automática con FastAPI.
 
-- **FastAPI** como framework web principal.
-- **Pydantic Settings** para leer y validar configuración desde `.env` y variables de entorno.
-- **Pydantic v2** para validar datos de entrada, salida y contratos intermedios.
-- **Loguru** para logging profesional con una configuración simple y mantenible.
-- **Pytest** como framework de pruebas para sostener TDD.
-- **`Depends` de FastAPI** para inyección de dependencias interna, sin sumar una librería extra.
+Uso real: Esquemas de request/response, modelos de dominio, configuración tipada.
 
-En términos prácticos, esto significa lo siguiente:
+### pydantic-settings
+Rol: Gestión de configuración
 
-- **FastAPI** maneja la capa HTTP.
-- **Pydantic Settings** maneja la configuración del entorno.
-- **Pydantic v2** asegura que los datos tengan forma y tipo correctos.
-- **Loguru** registra eventos, errores y trazas útiles.
-- **Pytest** valida que cada capa se comporte como se espera.
-- **Depends** conecta controladores, servicios y configuraciones de forma simple.
+Razón: Carga de variables de entorno, validación tipada, un único punto de verdad para settings.
 
-Esta selección es deliberadamente compacta: cubre lo esencial sin introducir dependencias que todavía no aportan valor real al alcance actual.
+Uso real: Carga de DATABASE_URL, MONGO_DB_NAME, puertos, CORS, secrets desde .env.
 
-## 1. Framework Web: FastAPI
+### Motor
+Rol: Driver asincrónico para MongoDB
 
-FastAPI debe ser el framework base del proyecto.
+Razón: Soporte completo async, integración con FastAPI, manejo eficiente de conexiones a base de datos.
 
-### Por qué es la mejor elección
+Uso real: Conexión y operaciones con MongoDB en app/core/database.py, MongoRepository para persistencia.
 
-- Está diseñado para trabajar de forma nativa con type hints, lo que mejora la legibilidad, reduce errores y fortalece el contrato entre capas.
-- Integra Pydantic de manera directa, por lo que la validación de entrada y salida no requiere capas de traducción innecesarias.
-- Genera OpenAPI y documentación interactiva automáticamente, lo que reduce mantenimiento manual.
-- Permite endpoints síncronos o asíncronos sin cambiar la arquitectura general.
-- Facilita la composición de controladores delgados, una regla clave de Clean Code.
+### PyPDF
+Rol: Extracción de texto de PDFs
 
-### Por qué es superior para tipado estático
+Razón: Lectura de contenido PDF, integración simple, extracto de texto por página.
 
-FastAPI aprovecha las anotaciones de tipo de Python como parte de su contrato funcional. Esto ofrece ventajas concretas frente a frameworks más dinámicos:
+Uso real: Procesamiento de archivos PDF subidos en pdf_service.py, extracción de texto para almacenamiento.
 
-- Los parámetros de endpoints, dependencias y respuestas quedan explícitos en la firma de la función.
-- Las herramientas de análisis estático como mypy, Pyright o el propio editor pueden detectar inconsistencias antes de ejecutar el código.
-- La documentación generada y el código real no divergen, porque ambas cosas nacen de la misma definición tipada.
-- Los modelos Pydantic sirven como frontera de entrada y salida, lo que evita que la lógica de negocio dependa de estructuras ambiguas.
+### Uvicorn
+Rol: Servidor ASGI
 
-### Encaje con Clean Code
+Razón: Servidor de producción para FastAPI, soporte async, fácil de configurar.
 
-- Controladores pequeños y predecibles.
-- Separación clara entre transporte HTTP y lógica de negocio.
-- Menor duplicación de validaciones.
-- Mejor mantenibilidad cuando el proyecto crece por módulos funcionales.
+Uso real: Ejecución de la aplicación con `uvicorn app.main:app`.
 
-## 2. Configuración y Entorno: Pydantic Settings
+### python-multipart
+Rol: Parseo de file uploads
 
-Pydantic Settings debe ser la solución base para cargar y validar configuración desde archivos `.env`, variables de entorno y valores por defecto.
+Razón: Soporte para form data con archivos en FastAPI.
 
-### Justificación técnica
+Uso real: Manejo de UploadFile para subida de PDFs.
 
-- Permite definir configuración como una clase tipada y versionable.
-- Convierte la configuración en un contrato explícito, en lugar de dispersarla por el código.
-- Valida tipos al arrancar la aplicación, detectando fallos de entorno de forma temprana.
-- Reduce el riesgo de errores silenciosos por variables faltantes o mal tipeadas.
+---
 
-### Valor para mantenibilidad
+## Dependencias de Desarrollo
 
-- Un único punto de verdad para la configuración.
-- Menos lógica condicional en módulos de arranque.
-- Configuración más fácil de testear con fixtures y monkeypatch.
+### Pytest
+Rol: Framework de testing
 
-### Relación con el proyecto actual
+Razón: Sintaxis simple, fixtures reutilizables, soporte para tests unitarios e integración, plugins abundantes.
 
-El repositorio ya sigue este enfoque en `app/core/config.py`, donde la configuración central se modela con `BaseSettings`. Eso es coherente con una arquitectura limpia y debe conservarse como estándar.
+Uso real: Tests en tests/test_pdfs.py, cobertura de funcionalidad crítica.
 
-## 3. Validación de Datos: Pydantic v2
+### pytest-cov
+Rol: Reporte de cobertura
 
-Pydantic v2 debe ser la librería estándar para modelos de entrada, salida y validación intermedia.
+Razón: Métricas de cobertura de código, reportes HTML.
 
-### Por qué usar Pydantic v2
+Uso real: Comando `pytest --cov=app --cov-report=html` para validar calidad de tests.
 
-- Mejora rendimiento respecto de la generación anterior.
-- Formaliza contratos de datos con modelos declarativos y expresivos.
-- Facilita separar schemas de API, entidades de dominio y objetos de servicio.
-- Se integra de forma natural con FastAPI y con settings de configuración.
+### httpx
+Rol: Cliente HTTP para tests
 
-### Beneficios bajo Clean Code
+Razón: Compatible con FastAPI TestClient, soporte async, alternativa moderna a requests.
 
-- Menos validación manual repetitiva.
-- Mensajes de error consistentes y comprensibles.
-- Menor riesgo de mutación accidental de objetos de entrada.
-- Mejor aislamiento entre capa HTTP y lógica interna.
+Uso real: Tests de endpoints HTTP sin necesidad de servidor externo.
 
-### Uso recomendado
+### Black
+Rol: Formateo de código
 
-- Modelos para requests y responses en la capa de schemas.
-- Modelos de settings para configuración.
-- Validación de invariantes simples en el borde del sistema, no dentro del core de negocio salvo necesidad real.
+Razón: Estilo consistente, sin configuración, opinionado.
 
-## 4. Logging Profesional: Loguru
+Uso real: `black app/ tests/` para mantener formato uniforme.
 
-Loguru es la opción recomendada para logging de aplicación en esta base.
+### Flake8
+Rol: Linting
 
-### Por qué Loguru
+Razón: Detección de errores comunes, estilo PEP 8.
 
-- Reduce boilerplate frente al módulo `logging` estándar.
-- Ofrece salida legible, niveles claros y configuración rápida.
-- Soporta sinks múltiples, rotación, retención y formatos estructurados.
-- Hace más simple instrumentar desarrollo, depuración y producción sin introducir demasiada complejidad.
+Uso real: `flake8 app/ tests/` para validar calidad de código.
 
-### Encaje con Clean Code
+### isort
+Rol: Ordenamiento de imports
 
-- El logging debe ser transversal, no invasivo.
-- Debe aportar trazabilidad sin ensuciar la lógica de negocio.
-- Loguru permite centralizar configuración y mantener llamadas consistentes.
+Razón: Imports organizados según convención, evita conflictos.
 
-### Recomendación de uso
+Uso real: `isort app/ tests/` para organizar imports automáticamente.
 
-- Usar un módulo de logging centralizado en `app/core`.
-- Evitar `print()` en toda la base de código.
-- Registrar eventos de negocio relevantes, errores y puntos de entrada/salida de procesos.
-- Si más adelante se necesita integración estricta con ecosistemas que dependen del logging estándar, Loguru puede convivir con él mediante un puente.
+### mypy
+Rol: Type checking estático
 
-## 5. Testing y TDD: Pytest
+Razón: Validación de tipos antes de ejecutar, integración con editors.
 
-Pytest debe ser la base del ciclo TDD del proyecto.
+Uso real: `mypy app/` para verificar consistencia de tipos.
 
-### Razones de selección
+---
 
-- Sintaxis simple y legible, ideal para pruebas orientadas al comportamiento.
-- Excelente soporte para fixtures, parametrización y marcadores.
-- Muy adecuado para pruebas unitarias, de integración y contract tests ligeros.
-- Tiene un ecosistema amplio de plugins que cubre la mayoría de las necesidades sin fricción.
+## Stack Actual de Producción
 
-### Plugins mínimos recomendados
+- FastAPI 0.136.0
+- Pydantic 2.13.3
+- pydantic-settings 2.14.0
+- Motor 3.7.1+
+- PyPDF 6.10.2+
+- Uvicorn 0.45.0
+- python-multipart 0.0.26
 
-- `pytest-cov`: cobertura de pruebas.
-- `pytest-asyncio` o soporte equivalente vía `anyio`: pruebas de código asíncrono.
-- `httpx`: cliente para probar endpoints HTTP de FastAPI sin depender de herramientas externas.
-- `pytest-mock`: mocking limpio y controlado cuando sea necesario aislar servicios.
+---
 
-### Por qué esto favorece TDD
+## Stack Actual de Desarrollo
 
-- Permite escribir tests pequeños, rápidos y repetibles antes de implementar el código.
-- Facilita la refactorización segura.
-- Hace visible el contrato funcional de cada capa.
-- Reduce la tentación de acoplar tests a detalles internos en lugar de comportamiento observable.
+- Pytest 9.0.3+
+- pytest-cov 7.1.0
+- httpx 0.28.1+
+- Black 26.3.1
+- Flake8 7.3.0
+- isort 8.0.1
+- mypy 1.20.2
 
-### Convención recomendada
+---
 
-- Tests unitarios para modelos y servicios.
-- Tests de integración para rutas y composición con FastAPI.
-- Uso de fixtures para construir estados reutilizables.
-- Marcadores para separar `unit`, `integration` y `slow`.
+## Patrones Arquitectónicos Soportados
 
-## 6. Inyección de Dependencias
+Dependencia Inyección: Nativa de FastAPI con `Depends`
 
-Para este proyecto no es necesario introducir una librería externa de inyección de dependencias.
+Persistencia: Patrón Repository con MongoRepository para MongoDB
 
-### Decisión
+Validación: Pydantic para bordes de entrada/salida
 
-Se recomienda usar la inyección nativa de FastAPI mediante `Depends`.
+Excepciones: Excepciones personalizadas del dominio (AppException, ValidationException, etc.)
 
-### Motivo
+Async: Motor + FastAPI para operaciones no-bloqueantes
 
-- Cubre el caso de uso actual con menor complejidad.
-- Mantiene el grafo de dependencias visible en los endpoints.
-- Evita capas extra de abstracción que suelen dificultar el debugging y el onboarding.
-- Está alineada con YAGNI: no sumar infraestructura que todavía no aporta valor claro.
+---
 
-### Cuándo evaluar una librería externa
+## Decisiones de Diseño
 
-Recién tendría sentido considerar algo como `dependency-injector` si el proyecto empieza a requerir:
+**No incluído: Loguru**
+Razón: El proyecto usa logging estándar de Python. Si se requiere logging más avanzado en futuro, puede agregarse sin cambios en el código existente.
 
-- Múltiples implementaciones intercambiables de servicios.
-- Ciclos de vida complejos de recursos.
-- Composición avanzada de módulos con muchas dependencias cruzadas.
-- Necesidad de un contenedor explícito para aplicaciones grandes o multi-tenant.
+**No incluído: Dependency Injector externo**
+Razón: FastAPI Depends es suficiente para la complejidad actual. Se evalúa si el proyecto crece.
 
-Mientras eso no ocurra, `Depends` es la mejor decisión de arquitectura.
+**No incluído: ORM (SQLAlchemy)**
+Razón: MongoDB + Motor proporciona acceso flexible sin ORM. Un ORM documentales no aplica a MongoDB.
 
-## 7. Selección final propuesta
+---
 
-### Base obligatoria
-
-- FastAPI
-- Pydantic v2
-- Pydantic Settings
-- Pytest
-- httpx para pruebas de API
-- pytest-cov
-- pytest-asyncio o soporte equivalente de async testing
-
-### Recomendadas
-
-- Loguru
-- pytest-mock
-
-### No introducir por ahora
-
-- Contenedor externo de inyección de dependencias
-- Capas adicionales de abstracción que no resuelvan un problema real
-- Dependencias enfocadas a PDFs o extracción documental hasta que exista ese requisito
-
-## Conclusión
-
-La combinación de FastAPI, Pydantic v2, Pydantic Settings, Pytest y Loguru ofrece una base moderna, tipada y mantenible para el proyecto.
-
-Esta selección respeta Clean Code porque reduce acoplamiento, centraliza responsabilidades y mantiene la intención del código visible. También respeta TDD porque favorece pruebas rápidas, contratos claros y refactorización segura.
-
-La decisión sobre inyección de dependencias debe mantenerse simple en esta etapa: usar `Depends` de FastAPI es suficiente, más legible y más sostenible para el alcance actual.
+**Última actualización:** 20 de mayo de 2026
+**Compatible con:** Python 3.10+
