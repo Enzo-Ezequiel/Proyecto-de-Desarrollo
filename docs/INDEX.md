@@ -1,103 +1,158 @@
 # Documentation Index
 
-Welcome to the RepositorioDesarrollo documentation. Choose a starting point:
+Welcome to the RepositorioDesarrollo documentation. This is a Python FastAPI project for managing PDF documents with MongoDB backend.
 
 ## 🚀 Quick Navigation
 
-### For New Developers
+### For Getting Started
 Start here if you're new to the project:
-1. **[START HERE (5 min)](01_START_HERE.md)** - Quick Spanish guide to get running fast
-2. **[Quick Start Guide](02_QUICK_START.md)** - Comprehensive setup with examples
+1. **[README.md](../README.md)** - Main project overview and setup
+2. **[GUIA_COMPLETA.md](GUIA_COMPLETA.md)** - Complete Spanish guide
 
-### For Understanding Architecture
-Learn how the project is structured:
-1. **[Architecture Guide](03_ARCHITECTURE.md)** - Technical details and design patterns
-2. **[Structure Summary](04_STRUCTURE_SUMMARY.md)** - Project overview and statistics
+### For Development References
+1. **[IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)** - Implementation tasks and progress
+2. **[bibliotecas.md](bibliotecas.md)** - Project dependencies and libraries
+3. **[CLEAN_CODE_VERIFICATION.md](CLEAN_CODE_VERIFICATION.md)** - Code quality checklist
+4. **[CLEAN_CODE_FIXES.md](CLEAN_CODE_FIXES.md)** - Applied clean code improvements
 
 ---
 
 ## 📚 Complete Documentation Breakdown
 
-### 01_START_HERE.md
-- **Audience**: Spanish-speaking developers, quick starters
-- **Time**: ~5 minutes
+### GUIA_COMPLETA.md
+- **Audience**: All developers, comprehensive Spanish guide
 - **Contains**:
-  - Project description
-  - Quick installation (3 steps)
+  - Project overview and purpose
+  - Architecture and structure explanation
+  - Setup and installation instructions
   - How to run the application
-  - Running tests
-  - Basic API endpoint examples
+  - Testing guide
+  - API documentation
+  - Development guidelines
 
-### 02_QUICK_START.md
-- **Audience**: All developers, comprehensive guide
-- **Time**: ~20 minutes to read
+### IMPLEMENTATION_CHECKLIST.md
+- **Audience**: Developers and project managers
 - **Contains**:
-  - Detailed setup instructions
-  - Environment configuration
-  - Running tests with different options
-  - API endpoint examples with curl
-  - Troubleshooting guide
-  - Development workflow tips
+  - Task list for implementation progress
+  - Feature checklist
+  - Testing requirements
+  - Documentation status
 
-### 03_ARCHITECTURE.md
-- **Audience**: Architects, senior developers
-- **Time**: ~30 minutes to read
-- **Contains**:
-  - Three-layer architecture explanation
-  - Design patterns used
-  - Clean Code principles (KISS, DRY, YAGNI, SOLID)
-  - Base classes and inheritance
-  - Feature-Driven Development approach
-  - File organization rationale
-  - Extension guidelines
-
-### 04_STRUCTURE_SUMMARY.md
+### bibliotecas.md
 - **Audience**: All developers
-- **Time**: ~10 minutes to read
 - **Contains**:
-  - Project statistics
-  - Directory tree with descriptions
-  - File-by-file breakdown
-  - Tests summary
-  - Dependencies list
+  - Complete list of project dependencies
+  - Library descriptions and versions
+  - Purpose of each external package
+
+### CLEAN_CODE_VERIFICATION.md
+- **Audience**: Code reviewers, senior developers
+- **Contains**:
+  - Code quality standards checklist
+  - Clean Code principles verification
+  - Architecture compliance checks
+  - Testing coverage requirements
+
+### CLEAN_CODE_FIXES.md
+- **Audience**: All developers
+- **Contains**:
+  - Summary of applied clean code improvements
+  - Refactoring changes made
+  - Best practices implemented
 
 ---
 
-## 🎯 Choose Your Path
+## 🎯 Project Structure Overview
 
-**I just got the repo:**
-→ Read [01_START_HERE.md](01_START_HERE.md) (Spanish) or [02_QUICK_START.md](02_QUICK_START.md) (English)
+```
+├── app/                          # Main application code
+│   ├── main.py                  # FastAPI application entry point
+│   ├── controllers/             # API route handlers
+│   │   ├── pdf_routes.py       # PDF management endpoints
+│   │   └── user_routes.py      # User management endpoints
+│   ├── core/                   # Core functionality
+│   │   ├── config.py           # Configuration management
+│   │   ├── database.py         # MongoDB connection
+│   │   ├── exceptions.py       # Custom exceptions
+│   │   ├── mongo_repository.py # MongoDB operations
+│   │   ├── repository.py       # Base repository pattern
+│   │   ├── utils.py            # Utility functions
+│   │   └── middleware/         # HTTP middleware
+│   ├── models/                 # Data models
+│   │   ├── base_model.py       # Base model class
+│   │   └── pdf_document.py     # PDF document model
+│   ├── schemas/                # Pydantic schemas
+│   │   └── pdf_schemas.py      # PDF validation schemas
+│   └── services/               # Business logic
+│       ├── base_service.py     # Base service class
+│       └── pdf_service.py      # PDF operations service
+├── config/                      # Configuration files
+│   ├── repositoriodesarrollo.toml
+│   └── requirements.txt        # Python dependencies
+├── docs/                        # Documentation (this folder)
+├── scripts/                     # Utility scripts
+│   └── run.py                  # Application launcher
+├── tests/                       # Test suite
+│   ├── test_pdfs.py           # PDF functionality tests
+├── pyproject.toml              # Python project configuration
+├── docker-compose.yml          # Docker Compose setup
+└── README.md                   # Main project README
+```
 
-**I need to understand how it's built:**
-→ Read [03_ARCHITECTURE.md](03_ARCHITECTURE.md)
+## 📋 Key Technologies
 
-**I want to know what's in each file:**
-→ Read [04_STRUCTURE_SUMMARY.md](04_STRUCTURE_SUMMARY.md)
-
-**I'm adding a new feature:**
-→ Read [03_ARCHITECTURE.md](03_ARCHITECTURE.md) for patterns, then follow the structure in [04_STRUCTURE_SUMMARY.md](04_STRUCTURE_SUMMARY.md)
+- **Framework**: FastAPI
+- **Database**: MongoDB
+- **Language**: Python 3.x
+- **Package Management**: Poetry (pyproject.toml)
+- **Containerization**: Docker & Docker Compose
+- **Testing**: Pytest
 
 ---
 
 ## 🔗 Additional Resources
 
-### Project Root Files
-- `README.md` - Main project overview
-- `pyproject.toml` - Python project configuration
-- `.gitignore` - Git ignore rules
-- `.python-version` - Python version specification
+### Root Files
+- `README.md` - Main project documentation
+- `pyproject.toml` - Python project and dependency configuration
+- `docker-compose.yml` - Container orchestration
+- `diagrama.puml` - Project diagram (PlantUML)
+- `validate_fixes.py` - Validation script
 
 ### Configuration
 See `config/` directory for:
-- `.env.example` - Environment variables template
-- `requirements.txt` - Python dependencies
+- `requirements.txt` - Python package dependencies
+- `repositoriodesarrollo.toml` - Project-specific configuration
 
 ### Scripts
 See `scripts/` directory for:
-- `run.py` - Application launcher
+- `run.py` - Application launcher and runner
 
-### VS Code
-See `.vscode/` directory for:
+### Testing
+See `tests/` directory for:
+- `test_pdfs.py` - PDF functionality unit tests
+
+---
+
+## 🎯 Choose Your Path
+
+**I just got the repository:**
+→ Read [README.md](../README.md) for quick setup
+
+**I want a complete guide (Spanish):**
+→ Read [GUIA_COMPLETA.md](GUIA_COMPLETA.md)
+
+**I need to know what to implement:**
+→ Check [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
+
+**I need to understand project dependencies:**
+→ See [bibliotecas.md](bibliotecas.md)
+
+**I'm doing code review:**
+→ Use [CLEAN_CODE_VERIFICATION.md](CLEAN_CODE_VERIFICATION.md)
+
+**I want to see what was improved:**
+→ Read [CLEAN_CODE_FIXES.md](CLEAN_CODE_FIXES.md)
 - `settings.json` - Editor configuration
 - `extensions.json` - Recommended extensions
 - `launch.json` - Debug configurations
