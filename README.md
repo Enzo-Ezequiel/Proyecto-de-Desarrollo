@@ -1,8 +1,16 @@
-# RepositorioDesarrollo
+# PDF Extractext
 
-Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean Code y Feature-Driven Development.
+Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean Code y Feature-Driven Development que extrae texto de archivos en formato PDF y convierte su contenido en formato txt.
 
-## Requisitos Previos
+## Integrantes
+- Albarracín Valentina
+- Buttini Ezequiel
+- Cano Matías
+- Gomez Manuel
+- Pérez Buttini Nicolás
+-Peñasco Valentina
+
+## Requisitos Previos al uso de la aplicación
 
 - Python 3.10+
 - [uv](https://docs.astral.sh/uv/) - Gestor de paquetes y entornos virtuales
@@ -27,7 +35,7 @@ uv sync
 
 ### 3. Activar entorno virtual
 
-Opción A (Manual):
+Opción A (Manual) para usuarios desde terminal powershell:
 
 ```powershell
 .venv\Scripts\Activate.ps1
@@ -38,9 +46,13 @@ Si tienes error de políticas de ejecución:
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
+Opción para usuarios desde wsl, ubuntu:
+source .venv/bin/activate
 
-Opción B (VS Code - Recomendado):
+Opción B-powershell-(VS Code - Recomendado):
 Abre VS Code desde la carpeta del proyecto. El entorno se activará automáticamente.
+Opción B-wsl-(VS Code - Recomendado):
+Abre VS Code desde la carpeta del proyecto escribiendo code . en la terminal. El entorno se activará automáticamente si tienes la extensión de Python configurada.
 
 ### 4. Configurar variables de entorno
 
