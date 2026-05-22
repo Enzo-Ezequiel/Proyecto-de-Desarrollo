@@ -46,8 +46,14 @@ class Settings(BaseSettings):
     database_url: str = "mongodb://localhost:27017"
     mongo_db_name: str = "repositorio_db"
 
+    # Límites de archivos PDF
+    pdf_max_size_mb: int = 5
+
+    # Nivel de logging
+    log_level: str = "INFO"
+
     # Carga variables desde .env
-    model_config = {"env_file": ".env"}
+    model_config = {"env_file": ".env", "extra": "ignore"}
 
 
 # Instancia global de configuración
