@@ -1,60 +1,42 @@
 """Configuración de la aplicación FastAPI."""
-
 from pydantic_settings import BaseSettings
-
-APP_NAME = "Repositorio Desarrollo"
-APP_VERSION = "0.1.0"
-APP_DESCRIPTION = (
-    "Aplicación FastAPI con arquitectura de tres capas "
-    "siguiendo principios de Clean Code y Feature-Driven Development"
-)
-
-DEFAULT_HOST = "0.0.0.0"
-DEFAULT_PORT = 8000
-DEFAULT_DEBUG = False
-
-API_PREFIX = "/api/v1"
-API_DOCS_URL = "/docs"
-API_REDOC_URL = "/redoc"
-
-DEFAULT_CORS_ORIGINS = ["http://localhost", "http://localhost:3000"]
-DEFAULT_CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-DEFAULT_CORS_ALLOW_CREDENTIALS = True
-DEFAULT_CORS_ALLOW_HEADERS = ["*"]
-
+from typing import List
 
 class Settings(BaseSettings):
     """Configuración de la aplicación con variables de entorno."""
+    
+    # Información de la API (pueden tener valores por defecto)
+    APP_NAME: str = "Repositorio Desarrollo"
+    APP_VERSION: str = "0.1.0"
+    APP_DESCRIPTION: str = "Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean Code y Feature-Driven Development"
+    
+    # Configuración del Servidor
+    DEBUG: bool = False
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+    
+    # Rutas de la API
+    API_PREFIX: str = "/api/v1"
+    API_DOCS_URL: str = "/docs"
+    API_REDOC_URL: str = "/redoc"
+    
+    # CORS (Configuración para desarrollo)
+    CORS_ORIGINS: List[str] = ["http://localhost", "http://localhost:3000", "http://localhost:8000"]
+    CORS_ALLOW_METHODS: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    CORS_ALLOW_CREDENTIALS: bool = True
+    CORS_ALLOW_HEADERS: List[str] = ["*"]
+    
+    # Límite de archivos PDF y Logging
+    PDF_MAX_SIZE_MB: int = 5
+    LOG_LEVEL: str = "INFO"
 
-    app_name: str = APP_NAME
-    app_version: str = APP_VERSION
-    app_description: str = APP_DESCRIPTION
+    # CONFIGURACIONES CRÍTICAS (12 APP Factor):
+    # Solo se declara el tipo, Pydantic leerá el valor real desde el archivo .env
+    MONGO_DB_NAME: str
+    DATABASE_URL: str
 
-    debug: bool = DEFAULT_DEBUG
-    host: str = DEFAULT_HOST
-    port: int = DEFAULT_PORT
-
-    api_prefix: str = API_PREFIX
-    api_docs_url: str = API_DOCS_URL
-    api_redoc_url: str = API_REDOC_URL
-
-    cors_origins: list[str] = DEFAULT_CORS_ORIGINS
-    cors_allow_credentials: bool = DEFAULT_CORS_ALLOW_CREDENTIALS
-    cors_allow_methods: list[str] = DEFAULT_CORS_ALLOW_METHODS
-    cors_allow_headers: list[str] = DEFAULT_CORS_ALLOW_HEADERS
-
-    database_url: str = "mongodb://localhost:27017"
-    mongo_db_name: str = "repositorio_db"
-
-    # Límites de archivos PDF
-    pdf_max_size_mb: int = 5
-
-    # Nivel de logging
-    log_level: str = "INFO"
-
-    # Carga variables desde .env
-    model_config = {"env_file": ".env", "extra": "ignore"}
-
+    class Config:
+        env_file = ".env"
 
 # Instancia global de configuración
 settings = Settings()
