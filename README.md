@@ -8,7 +8,7 @@ Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean
 - Cano Matías
 - Gomez Manuel
 - Pérez Buttini Nicolás
--Peñasco Valentina
+- Peñasco Valentina
 
 ## Requisitos Previos al uso de la aplicación
 
