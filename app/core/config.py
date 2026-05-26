@@ -5,36 +5,37 @@ from typing import List
 class Settings(BaseSettings):
     """Configuración de la aplicación con variables de entorno."""
     
-    # Información de la API (pueden tener valores por defecto)
-    APP_NAME: str = "Repositorio Desarrollo"
-    APP_VERSION: str = "0.1.0"
-    APP_DESCRIPTION: str = "Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean Code y Feature-Driven Development"
+    # Información de la API
+    app_name: str = "Repositorio Desarrollo"
+    app_version: str = "0.1.0"
+    app_description: str = "Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean Code y Feature-Driven Development"
     
     # Configuración del Servidor
-    DEBUG: bool = False
-    HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    debug: bool = False
+    host: str = "0.0.0.0"
+    port: int = 8000
     
     # Rutas de la API
-    API_PREFIX: str = "/api/v1"
-    API_DOCS_URL: str = "/docs"
-    API_REDOC_URL: str = "/redoc"
+    api_prefix: str = "/api/v1"
+    api_docs_url: str = "/docs"
+    api_redoc_url: str = "/redoc"
     
     # CORS (Configuración para desarrollo)
-    CORS_ORIGINS: List[str] = ["http://localhost", "http://localhost:3000", "http://localhost:8000"]
-    CORS_ALLOW_METHODS: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    CORS_ALLOW_CREDENTIALS: bool = True
-    CORS_ALLOW_HEADERS: List[str] = ["*"]
+    cors_origins: List[str] = ["http://localhost", "http://localhost:3000", "http://localhost:8000"]
+    cors_allow_methods: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_allow_credentials: bool = True
+    cors_allow_headers: List[str] = ["*"]
     
     # Límite de archivos PDF y Logging
-    PDF_MAX_SIZE_MB: int = 5
-    LOG_LEVEL: str = "INFO"
+    pdf_max_size_mb: int = 5
+    log_level: str = "INFO"
 
     # CONFIGURACIONES CRÍTICAS (12 APP Factor):
-    # Solo se declara el tipo, Pydantic leerá el valor real desde el archivo .env
-    MONGO_DB_NAME: str
-    DATABASE_URL: str
+    # Pydantic buscará automáticamente MONGO_DB_NAME y DATABASE_URL en el .env
+    mongo_db_name: str
+    database_url: str
 
+    # Configuración de Pydantic V2 para leer el .env
     model_config = {
         "env_file": ".env", 
         "extra": "ignore"
