@@ -24,7 +24,7 @@ Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean
 
 ```powershell
 git clone <repository-url>
-cd RepositorioDesarrollo
+cd Proyecto-de-Desarrollo
 ```
 
 ### 2. Instalar dependencias
