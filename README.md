@@ -18,7 +18,7 @@ Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean
 - Visual Studio Code (recomendado)
 - Docker Desktop - Para MongoDB
 
-## Inicio Rápido
+## Inicio rápido de desarollo 
 
 ### 1. Clonar el repositorio
 
@@ -86,6 +86,34 @@ uv run pytest tests/ -v
 ```
 
 ---
+
+## Inicio rapido para ejecucion
+
+Para ejecutar este proyecto, ofrecemos dos alternativas: una ejecución rápida 100% en contenedores (ideal para evaluación) y una configuración local completa para desarrollo continuo. Esta opción despliega tanto la aplicación web como la base de datos MongoDB en contenedores aislados, sin necesidad de instalar dependencias ni configurar entornos virtuales en tu máquina local.
+
+### 1. Clonar el repositorio
+
+```powershell
+git clone <repository-url>
+cd Proyecto-de-Desarrollo
+```
+
+### 2. Configurar variables de entorno
+
+```powershell
+cp config\.env.example .env
+```
+
+### 3. Construir y levantar todo el ecosistema
+Solo va a funcionar con docker desktop insatalado y abierto:
+
+```powershell
+docker-compose up --build -d
+```
+### 4. Acceder a la API
+- API: http://127.0.0.1:8000
+- Documentación Swagger: http://127.0.0.1:8000/docs
+- Documentación ReDoc: http://127.0.0.1:8000/redoc
 
 ## Estructura del Proyecto
 
