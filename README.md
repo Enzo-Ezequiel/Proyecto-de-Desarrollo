@@ -18,7 +18,7 @@ Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean
 - Visual Studio Code (recomendado)
 - Docker Desktop - Para MongoDB
 
-## Inicio rápido de desarollo 
+## Inicio rápido para desarollo 
 
 ### 1. Clonar el repositorio
 
@@ -114,6 +114,8 @@ docker-compose up --build -d
 - API: http://127.0.0.1:8000
 - Documentación Swagger: http://127.0.0.1:8000/docs
 - Documentación ReDoc: http://127.0.0.1:8000/redoc
+
+---
 
 ## Estructura del Proyecto
 
