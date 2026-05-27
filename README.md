@@ -83,6 +83,8 @@ La API estará disponible en:
 
 ```powershell
 uv run pytest tests/ -v
+#o
+docker exec -it fastapi_app uv run pytest tests/ -v
 ```
 
 ---
@@ -110,7 +112,15 @@ Solo va a funcionar con docker desktop insatalado y abierto:
 ```powershell
 docker-compose up --build -d
 ```
-### 4. Acceder a la API
+### 4. Ejecutar tests
+
+```powershell
+uv run pytest tests/ -v
+#o
+docker exec -it fastapi_app uv run pytest tests/ -v
+```
+
+### 5. Acceder a la API
 - API: http://127.0.0.1:8000
 - Documentación Swagger: http://127.0.0.1:8000/docs
 - Documentación ReDoc: http://127.0.0.1:8000/redoc
