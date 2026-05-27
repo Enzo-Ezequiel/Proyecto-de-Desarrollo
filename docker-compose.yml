@@ -8,5 +8,13 @@ services:
       - "8000:8000"
     environment:
       - HOST=0.0.0.0
-      # Lee la URL de la base de datos externa desde tu .env
       - DATABASE_URL=${DATABASE_URL}
+      - MONGO_DB_NAME=${MONGO_DB_NAME} 
+    depends_on:
+      - mongodb_db
+
+  mongodb_db:
+    image: mongo:latest
+    container_name: mongodb_db
+    ports:
+      - "27017:27017"
