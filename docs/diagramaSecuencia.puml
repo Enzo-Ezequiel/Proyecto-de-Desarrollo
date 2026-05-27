@@ -1,0 +1,60 @@
+@startuml Secuencia_Subir_PDF
+skinparam style strictuml
+skinparam sequenceMessageAlign center
+
+title Diagrama de Secuencia: Registro y Procesamiento de PDF
+
+actor "Cliente" as User
+participant "Capa 3: Controladores\n(app/controllers/)" as Controller
+participant "Capa 2: Servicios\n(app/services/)" as Service
+participant "Capa 1: Modelos\n(app/models/)" as Model
+database "Contenedor MongoDB\n(Puerto 27017)" as DB
+
+User -> Controller: POST /api/v1/pdfs/ \n(Envía Archivo PDF físico)
+activate Controller
+
+note right of Controller
+  FastAPI recibe la petición HTTP.
+  Valida tamaño (máx 5MB) y formato.
+end note
+
+Controller -> Service: procesar_pdf(archivo_pdf)
+activate Service
+
+note right of Service
+  La Capa 2 ejecuta la lógica de negocio:
+  1. Extrae el texto usando pypdf.
+  2. Calcula el checksum del archivo.
+end note
+
+Service -> Service: Extraer texto crudo
+Service -> Service: Calcular checksum matemático
+
+Service -> Model: instanciar(nombre, contenido, checksum)
+activate Model
+
+note right of Model
+  La Capa 1 provee la estructura
+  heredando de BaseEntity (id, fechas).
+end note
+
+Model --> Service: Objeto DocumentoPDF estructurado
+deactivate Model
+
+Service -> DB: insert_one(documento_json)
+activate DB
+note right of DB
+  Motor envía los datos de
+  forma asíncrona a la base de datos.
+end note
+
+DB --> Service: Confirmación (ID del documento)
+deactivate DB
+
+Service --> Controller: Retorna datos procesados y guardados
+deactivate Service
+
+Controller --> User: Respuesta HTTP 200 OK (JSON)
+deactivate Controller
+
+@enduml
