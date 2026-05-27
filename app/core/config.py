@@ -1,4 +1,4 @@
-"""Configuración de la aplicación FastAPI."""
+"""Configuración de la aplicación FastAPI y centralizador de variables de entorno."""
 from pydantic_settings import BaseSettings
 from typing import List
 

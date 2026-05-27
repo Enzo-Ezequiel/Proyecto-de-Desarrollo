@@ -10,5 +10,3 @@ services:
       - HOST=0.0.0.0
       # Lee la URL de la base de datos externa desde tu .env
       - DATABASE_URL=${DATABASE_URL}
-    # Comando de producción real, sin el --reload
-    command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
