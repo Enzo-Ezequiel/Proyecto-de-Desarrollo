@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    image: proyecto-de-desarrollo-app:latest
     container_name: fastapi_app
     ports:
       - "8000:8000"
@@ -10,11 +10,3 @@ services:
       - HOST=0.0.0.0
       - DATABASE_URL=${DATABASE_URL}
       - MONGO_DB_NAME=${MONGO_DB_NAME} 
-    depends_on:
-      - mongodb_db
-
-  mongodb_db:
-    image: mongo:latest
-    container_name: mongodb_db
-    ports:
-      - "27017:27017"

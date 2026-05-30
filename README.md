@@ -64,7 +64,7 @@ cp config\.env.example .env
 ### 5. Iniciar MongoDB (Docker)
 
 ```powershell
-docker-compose up -d
+docker run -d --name mongodb_db -p 27017:27017 mongo:latest
 ```
 
 ### 6. Ejecutar la aplicación
@@ -110,7 +110,15 @@ cp config\.env.example .env
 Solo va a funcionar con docker desktop insatalado y abierto:
 
 ```powershell
-docker-compose up --build -d
+#1.
+docker run -d --name mongodb_db -p 27017:27017 mongo:latest
+
+#2.
+docker build -t proyecto-de-desarrollo-app:latest .
+
+#3.
+docker-compose up -d
+
 ```
 ### 4. Ejecutar tests
 
