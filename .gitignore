@@ -2,6 +2,12 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+
+# Entornos
+docker/.env
+dockerMongo/.env
+.env
 
 # C extensions
 *.so

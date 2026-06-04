@@ -1,10 +1,10 @@
-# Usamos Python 3.10 o superior
+# Python 3.10 o superior
 FROM python:3.10-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Creamos el usuario sin privilegios
+# Usuario sin privilegios
 RUN useradd --create-home --home-dir /home/appuser appuser
 
 # Instalamos dependencias del sistema de forma segura
@@ -15,16 +15,16 @@ RUN apt-get update \
 
 USER appuser
 
-# Instalamos uv (esto se guardará seguro en /home/appuser/.local/bin)
+# Instalamos uv 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# NUEVO: Creamos una subcarpeta exclusiva para tu código
+# Subcarpeta exclusiva para tu código
 WORKDIR /home/appuser/app
 
 # Actualizamos el PATH para encontrar uv y el entorno virtual
 ENV PATH="/home/appuser/.local/bin:/home/appuser/app/.venv/bin:$PATH"
 
-# Copiamos todo el código a la subcarpeta
+# Copia todo el código a la subcarpeta
 COPY --chown=appuser:appuser . .
 
 # Sincronizamos las dependencias

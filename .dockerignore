@@ -1,7 +1,33 @@
+# Entornos virtuales
 .venv/
+
+# Git
 .git/
-.vscode/
+.gitignore
+
+# Entornos y secretos locales (Nunca subir contraseñas)
+.env
+docker/.env
+dockerMongo/.env
+
+# Caché de Python y metadatos locales
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .pytest_cache/
-.env
+repositoriodesarrollo.egg-info/
+
+# Configuraciones de IDE local
+.vscode/
+RepositorioDesarrollo.code-workspace
+
+# Documentación y scripts de validación local
+README.md
+docs/
+validate_fixes.py
+
+# Archivos de Orquestación Docker (No se necesitan dentro del contenedor)
+docker-compose.yml
+docker/
+dockerMongo/

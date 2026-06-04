@@ -57,17 +57,22 @@ Abre VS Code desde la carpeta del proyecto escribiendo code . en la terminal. El
 ### 4. Configurar variables de entorno
 
 ```powershell
-# Copiar plantilla
-cp config\.env.example .env
+# Copiar plantilla para desarrollo
+cp config/.env.example .env
 ```
 
 ### 5. Iniciar MongoDB (Docker)
 
+Para desarrollar localmente, solo necesitamos levantar la base de datos simulando "la nube":
+
 ```powershell
-docker run -d --name mongodb_db -p 27017:27017 mongo:latest
+# Abre una terminal en la carpeta `dockerMongo` (fuera del proyecto principal) y ejecuta:
+docker-compose up -d
 ```
 
 ### 6. Ejecutar la aplicación
+
+Con la base de datos encendida, levantamos la aplicación de forma local:
 
 ```powershell
 uv run uvicorn app.main:app --reload
@@ -83,8 +88,6 @@ La API estará disponible en:
 
 ```powershell
 uv run pytest tests/ -v
-#o
-docker exec -it fastapi_app uv run pytest tests/ -v
 ```
 
 ---
@@ -103,28 +106,23 @@ cd Proyecto-de-Desarrollo
 ### 2. Configurar variables de entorno
 
 ```powershell
-cp config\.env.example .env
+cp config/.env.example.docker docker/.env
 ```
 
 ### 3. Construir y levantar todo el ecosistema
 Solo va a funcionar con docker desktop insatalado y abierto:
 
 ```powershell
-#1.
-docker run -d --name mongodb_db -p 27017:27017 mongo:latest
-
-#2.
-docker build -t proyecto-de-desarrollo-app:latest .
-
-#3.
+# Abre una terminal en la carpeta dockerMongo (fuera del proyecto principal) y ejecuta:
 docker-compose up -d
-
+# En la terminal de tu proyecto principal, navega hacia la carpeta docker y levanta la app:
+cd docker
+docker-compose up -d --build
 ```
 ### 4. Ejecutar tests
+Como el entorno es 100% Docker y no tienes dependencias locales, ejecuta los tests directamente dentro del contenedor de la aplicación:
 
 ```powershell
-uv run pytest tests/ -v
-#o
 docker exec -it fastapi_app uv run pytest tests/ -v
 ```
 
