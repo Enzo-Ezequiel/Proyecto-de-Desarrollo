@@ -229,9 +229,11 @@ Consulta `/docs` para referencias completas:
 
 ## Principios de Desarrollo
 
-- Clean Code (KISS, DRY, YAGNI, SOLID)
-- Test-Driven Development (TDD)
-- Feature-Driven Development (FDD)
+- **Clean Code** : KISS, DRY, YAGNI, SOLID
+-   **TDD** : Test-Driven Development
+-   **FDD** : Feature-Driven Development
+-   **Arquitectura** : Patrón de tres capas MVC
+-   **12-Factor App** : Gestión estricta de dependencias, configuraciones (vía Pydantic) y logs (stdout).
 
 ---
 
