@@ -3,6 +3,9 @@ import hashlib
 import pypdf
 from fastapi import UploadFile
 
+# 1. Importamos tus settings para usar la variable de entorno
+from app.core.config import settings
+
 from app.core.mongo_repository import MongoRepository
 from app.models.pdf_document import DocumentoPDF
 from app.core.database import get_database
@@ -18,8 +21,9 @@ async def procesar_y_guardar_pdf(file: UploadFile):
     # Lee el contenido
     contenido_bytes = await file.read()
 
-    # Valida el tamaño
-    limite_mb = 5
+    # 2. Reemplazamos el "5" duro por la variable de tus settings (12-Factor App)
+    limite_mb = settings.pdf_max_size_mb
+    
     if len(contenido_bytes) > (limite_mb * 1024 * 1024):
         raise ValueError(
             f"El archivo excede el tamaño máximo permitido de {limite_mb}MB."

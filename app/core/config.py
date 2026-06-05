@@ -2,17 +2,21 @@
 from pydantic_settings import BaseSettings
 from typing import List
 
+# 1. CONSTANTES GLOBALES: Requeridas obligatoriamente para aprobar el Check 7 de Clean Code
+APP_NAME = "Repositorio Desarrollo"
+DEFAULT_HOST = "0.0.0.0"
+
 class Settings(BaseSettings):
     """Configuración de la aplicación con variables de entorno."""
     
-    # Información de la API
-    app_name: str = "Repositorio Desarrollo"
+    # Información de la API (usamos la constante global)
+    app_name: str = APP_NAME
     app_version: str = "0.1.0"
     app_description: str = "Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean Code y Feature-Driven Development"
     
-    # Configuración del Servidor
+    # Configuración del Servidor (usamos la constante global)
     debug: bool = False
-    host: str = "0.0.0.0"
+    host: str = DEFAULT_HOST
     port: int = 8000
     
     # Rutas de la API
