@@ -1,7 +1,18 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
-from app.services.pdf_service import procesar_y_guardar_pdf, obtener_todos_los_pdfs, obtener_pdf_por_id, eliminar_pdf
 
-# 1. Importamos nuestro logger
+# 1. Agregamos 'actualizar_pdf' a nuestras importaciones del servicio
+from app.services.pdf_service import (
+    procesar_y_guardar_pdf, 
+    obtener_todos_los_pdfs, 
+    obtener_pdf_por_id, 
+    eliminar_pdf,
+    actualizar_pdf
+)
+
+# 2. Importamos el nuevo esquema (Ajusta 'nombre_de_tu_archivo' al nombre real de tu script en app/schemas/)
+from app.schemas.pdf_schemas import PDFUpdate 
+
+# Importamos nuestro logger
 from app.core.utils import logger
 
 router = APIRouter(tags=["Documentos PDF"])
@@ -9,11 +20,9 @@ router = APIRouter(tags=["Documentos PDF"])
 @router.post("/api/v1/pdfs/")
 async def registrar_pdf(file: UploadFile = File(...)):
     """Sube un archivo físico PDF, valida su formato y lo envía al servicio para procesamiento en memoria."""
-    # Logueamos información útil al iniciar la petición
     logger.info(f"Recibiendo solicitud para registrar PDF: {file.filename}")
 
     if file.content_type != "application/pdf":
-        # 2. Registramos una advertencia si el usuario sube algo que no es PDF
         logger.warning(f"Rechazado: El archivo '{file.filename}' no es un PDF válido (Tipo: {file.content_type}).")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -22,15 +31,12 @@ async def registrar_pdf(file: UploadFile = File(...)):
     
     try:
         documento_guardado = await procesar_y_guardar_pdf(file)
-        # 3. Registramos el éxito de la operación
         logger.info(f"✅ PDF '{file.filename}' procesado y guardado correctamente.")
         return {"mensaje": "✅ PDF procesado y guardado con éxito", "datos": documento_guardado}
     except ValueError as e:
-        # 4. Registramos como advertencia los errores de validación
         logger.warning(f"Error de validación al procesar '{file.filename}': {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # 5. Registramos como ERROR crítico cualquier fallo inesperado del servidor
         logger.error(f"❌ Error interno al procesar el PDF '{file.filename}': {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
@@ -61,3 +67,31 @@ async def borrar_pdf(pdf_id: str):
     
     logger.info(f"✅ PDF con ID {pdf_id} eliminado exitosamente.")
     return {"mensaje": "✅ Documento PDF eliminado con éxito."}
+
+# NUEVO: Endpoint PUT para actualizar
+@router.put("/api/v1/pdfs/{pdf_id}")
+async def update_pdf(pdf_id: str, pdf_in: PDFUpdate):
+    """Actualiza los metadatos (nombre o texto) de un documento PDF existente."""
+    logger.info(f"Solicitud para actualizar PDF con ID: {pdf_id}")
+    try:
+        # Pydantic v2: extraemos solo los campos que el usuario realmente envió
+        datos_a_actualizar = pdf_in.model_dump(exclude_unset=True)
+        
+        if not datos_a_actualizar:
+            logger.debug(f"Petición de actualización vacía para el ID: {pdf_id}")
+            raise HTTPException(status_code=400, detail="No se enviaron datos para actualizar")
+
+        pdf_actualizado = await actualizar_pdf(pdf_id, datos_a_actualizar)
+        logger.info(f"✅ PDF con ID {pdf_id} actualizado correctamente.")
+        
+        return {"mensaje": "Documento actualizado con éxito", "datos": pdf_actualizado}
+        
+    except ValueError as e:
+        logger.warning(f"Error de validación al actualizar PDF {pdf_id}: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        # Re-lanzamos las excepciones HTTP que ya construimos arriba
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error inesperado al actualizar PDF {pdf_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error interno al actualizar el documento")

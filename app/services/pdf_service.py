@@ -83,3 +83,28 @@ async def eliminar_pdf(pdf_id: str):
         db=get_database(), entity_class=DocumentoPDF, collection_name="pdfs"
     )
     return await pdf_repo.delete(pdf_id)
+
+
+async def actualizar_pdf(pdf_id: str, datos_actualizados: dict):
+    """
+    Actualiza los metadatos de un PDF existente (nombre o contenido).
+    No actualiza el checksum por seguridad de integridad.
+    """
+    pdf_repo = MongoRepository(
+        db=get_database(), entity_class=DocumentoPDF, collection_name="pdfs"
+    )
+    
+    documento_existente = await pdf_repo.get_by_id(pdf_id)
+    if not documento_existente:
+        raise ValueError(f"No se encontró el documento PDF con ID {pdf_id}")
+    
+    if "nombre_pdf" in datos_actualizados and datos_actualizados["nombre_pdf"]:
+        documento_existente.nombre_pdf = datos_actualizados["nombre_pdf"]
+        
+    if "contenido_pdf" in datos_actualizados and datos_actualizados["contenido_pdf"]:
+        documento_existente.contenido_pdf = datos_actualizados["contenido_pdf"]
+        
+    documento_existente.update_timestamp()
+   
+    resultado = await pdf_repo.update(documento_existente)
+    return resultado
