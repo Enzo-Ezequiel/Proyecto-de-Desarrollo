@@ -30,4 +30,3 @@ validate_fixes.py
 # Archivos de Orquestación Docker (No se necesitan dentro del contenedor)
 docker-compose.yml
 docker/
-dockerMongo/

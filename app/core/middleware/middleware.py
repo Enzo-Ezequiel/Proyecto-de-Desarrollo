@@ -1,15 +1,14 @@
-"""Middlewares HTTP de la aplicación."""
+from app.core.config import settings
 
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
-
-# 1. Importamos nuestro logger centralizado
 from app.core.utils import logger
 
 class FileSizeLimitMiddleware:
     """Rechaza solicitudes HTTP cuyo `Content-Length` supera el límite configurado."""
 
-    def __init__(self, app: ASGIApp, max_size_bytes: int = 10 * 1024 * 1024) -> None:
+    # 2. Mantenemos tu nombre original 'max_size_bytes', pero calculamos el default con 'settings'
+    def __init__(self, app: ASGIApp, max_size_bytes: int = settings.pdf_max_size_mb * 1024 * 1024) -> None:
         self.app = app
         self.max_size_bytes = max_size_bytes
 
@@ -26,17 +25,20 @@ class FileSizeLimitMiddleware:
                 request_size = int(content_length.decode("latin-1"))
             except ValueError:
                 request_size = None
-                # 2. Registramos si alguien manda un header corrupto
+                # Registramos si alguien manda un header corrupto
                 logger.warning("Se recibió un encabezado content-length con formato inválido.")
 
             if request_size is not None and request_size > self.max_size_bytes:
-                # 3. Registramos una advertencia (warning) cuando se rechaza un archivo
+                # Registramos una advertencia (warning) cuando se rechaza un archivo
                 logger.warning(f"⚠️ Solicitud HTTP rechazada: El tamaño ({request_size} bytes) excede el límite de {self.max_size_bytes} bytes.")
+                
+                # 3. Calculamos dinámicamente los MB para el mensaje de error del usuario
+                limite_mb = self.max_size_bytes // (1024 * 1024)
                 
                 response = JSONResponse(
                     status_code=413,
                     content={
-                        "detail": "El tamaño de la solicitud supera el límite permitido de 10MB."
+                        "detail": f"El tamaño de la solicitud supera el límite permitido de {limite_mb}MB."
                     },
                 )
                 await response(scope, receive, send)
