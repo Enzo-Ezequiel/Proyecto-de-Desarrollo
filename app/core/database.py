@@ -1,35 +1,60 @@
-from motor.motor_asyncio import AsyncIOMotorClient
-# Importamos settings desde tu archivo de configuración
-from app.core.config import settings
+"""
+Conexión a MongoDB.
 
-# 1. Importamos nuestro logger
+En la arquitectura actual usa un singleton global para compatibilidad
+con el lifespan de FastAPI. Para microservicios, cada servicio
+instancia su propia DatabaseConnection vía Depends().
+"""
+
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from app.core.config import settings
 from app.core.utils import logger
 
-class Database:
-    client: AsyncIOMotorClient = None
-    db = None
 
-db_instance = Database()
+class DatabaseConnection:
+    """Encapsula la conexión a MongoDB. Cada microservicio instanciaría la suya."""
 
-async def connect_to_mongo():
-    """Abre la conexión con MongoDB"""
-    try:
-        db_instance.client = AsyncIOMotorClient(settings.database_url)
-        db_instance.db = db_instance.client[settings.mongo_db_name]
-        # 2. Reemplazamos el print por un mensaje de información
-        logger.info("✅ Conectado a MongoDB")
-    except Exception as e:
-        # 3. Registramos como ERROR CRÍTICO si la base de datos falla al conectar
-        logger.error(f"❌ Fallo crítico al intentar conectar a MongoDB: {e}")
-        raise e
+    def __init__(self, database_url: str, db_name: str) -> None:
+        self._client: AsyncIOMotorClient | None = None
+        self._database_url = database_url
+        self._db_name = db_name
 
-async def close_mongo_connection():
-    """Cierra la conexión con MongoDB"""
-    if db_instance.client is not None:
-        db_instance.client.close()
-        # 4. Reemplazamos el print del cierre
-        logger.info("🛑 Conexión a MongoDB cerrada")
+    @property
+    def db(self) -> AsyncIOMotorDatabase | None:
+        return self._client[self._db_name] if self._client else None
 
-def get_database():
-    """Devuelve la instancia de la base de datos"""
-    return db_instance.db
+    async def connect(self) -> None:
+        try:
+            self._client = AsyncIOMotorClient(self._database_url)
+            logger.info("Conectado a MongoDB")
+        except Exception as e:
+            logger.error(f"Fallo crítico al intentar conectar a MongoDB: {e}")
+            raise
+
+    async def disconnect(self) -> None:
+        if self._client is not None:
+            self._client.close()
+            logger.info("Conexión a MongoDB cerrada")
+
+
+# Singleton global (suficiente para monolito; en microservicios se reemplaza por DI)
+_db_connection = DatabaseConnection(settings.database_url, settings.mongo_db_name)
+
+
+async def connect_to_mongo() -> None:
+    """Hook de lifespan: abre la conexión."""
+    await _db_connection.connect()
+
+
+async def close_mongo_connection() -> None:
+    """Hook de lifespan: cierra la conexión."""
+    await _db_connection.disconnect()
+
+
+def get_database() -> AsyncIOMotorDatabase:
+    """FastAPI Depends(): retorna la instancia de la base de datos.
+
+    Para microservicios, cada servicio redefiniría esta función
+    apuntando a su propia DatabaseConnection.
+    """
+    return _db_connection.db

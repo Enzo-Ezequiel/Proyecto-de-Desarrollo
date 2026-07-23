@@ -25,10 +25,13 @@ class PdfService(BaseService[DocumentoPDF]):
         super().__init__(repository)
 
     async def procesar_y_guardar(self, file: UploadFile) -> DocumentoPDF:
-        """Valida el tamaño, evita duplicados por checksum, extrae el texto y persiste el PDF."""
+        """Valida formato, tamaño y duplicados. Extrae texto y persiste el PDF."""
+        self._validar_formato(file)
         contenido_bytes = await file.read()
 
         self._validar_tamano(contenido_bytes)
+        self._validar_contenido(contenido_bytes)
+
         checksum = hashlib.sha256(contenido_bytes).hexdigest()
         await self._validar_no_duplicado(checksum)
 
@@ -41,6 +44,14 @@ class PdfService(BaseService[DocumentoPDF]):
         )
         return await self.create(nuevo_documento)
 
+    def _validar_formato(self, file: UploadFile) -> None:
+        """Valida que el archivo tenga formato PDF."""
+        if file.content_type != "application/pdf":
+            raise ValidationException(
+                f"El archivo debe ser un documento PDF válido. "
+                f"Tipo recibido: {file.content_type}"
+            )
+
     def _validar_tamano(self, contenido_bytes: bytes) -> None:
         limite_mb = settings.pdf_max_size_mb
         if len(contenido_bytes) > (limite_mb * 1024 * 1024):
@@ -48,13 +59,24 @@ class PdfService(BaseService[DocumentoPDF]):
                 f"El archivo excede el tamaño máximo permitido de {limite_mb}MB."
             )
 
+    def _validar_contenido(self, contenido_bytes: bytes) -> None:
+        """Valida que el archivo no esté vacío."""
+        if len(contenido_bytes) == 0:
+            raise ValidationException("El archivo está vacío.")
+
     async def _validar_no_duplicado(self, checksum: str) -> None:
         duplicado = await self._repository.find_one({"checksum": checksum})
         if duplicado:
             raise DuplicateResourceException("Documento PDF", f"checksum {checksum}")
 
     def _extraer_texto(self, contenido_bytes: bytes) -> str:
-        lector_pdf = pypdf.PdfReader(io.BytesIO(contenido_bytes))
+        try:
+            lector_pdf = pypdf.PdfReader(io.BytesIO(contenido_bytes))
+        except pypdf.errors.EmptyFileError:
+            raise ValidationException("El archivo PDF está vacío o corrupto.")
+        except Exception:
+            raise ValidationException("No se pudo leer el archivo PDF.")
+
         texto_extraido = ""
         for pagina in lector_pdf.pages:
             texto = pagina.extract_text()

@@ -1,15 +1,16 @@
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, List, Optional, Type
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from app.core.repository import Repository
+from app.core.repository import Repository, T
 
-T = TypeVar("T")
 
 class MongoRepository(Repository[T], Generic[T]):
     """
     Implementación del repositorio para MongoDB usando Motor (asíncrono).
     """
 
-    def __init__(self, db: AsyncIOMotorDatabase, collection_name: str, entity_class: Type[T]):
+    def __init__(
+        self, db: AsyncIOMotorDatabase, collection_name: str, entity_class: Type[T]
+    ):
         """
         Inicializa el repositorio.
         :param db: Instancia de la base de datos MongoDB.
@@ -23,7 +24,7 @@ class MongoRepository(Repository[T], Generic[T]):
         document = entity.__dict__.copy()
         # MongoDB usa '_id' en lugar de 'id'. Hacemos el cambio:
         document["_id"] = document.pop("id")
-        
+
         await self.collection.insert_one(document)
         return entity
 
@@ -46,7 +47,7 @@ class MongoRepository(Repository[T], Generic[T]):
     async def update(self, entity: T) -> T:
         document = entity.__dict__.copy()
         document["_id"] = document.pop("id")
-        
+
         await self.collection.replace_one({"_id": entity.id}, document)
         return entity
 

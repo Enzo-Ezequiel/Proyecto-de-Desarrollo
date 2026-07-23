@@ -1,13 +1,10 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.core.config import settings
-from app.core.database import get_database
-from app.core.mongo_repository import MongoRepository
+from app.core.providers import get_pdf_service
 from app.core.utils import logger
-from app.models.pdf_document import DocumentoPDF
 from app.schemas.pdf_schemas import (
     MensajeResponse,
     PDFDocumentResponse,
@@ -18,32 +15,20 @@ from app.services.pdf_service import PdfService
 router = APIRouter(prefix=f"{settings.api_prefix}/pdfs", tags=["Documentos PDF"])
 
 
-def get_pdf_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> PdfService:
-    """Inyecta el servicio de PDFs con su repositorio de MongoDB."""
-    repository = MongoRepository(db=db, collection_name="pdfs", entity_class=DocumentoPDF)
-    return PdfService(repository)
-
-
 @router.post("/", response_model=PDFUploadResponse, status_code=status.HTTP_201_CREATED)
 async def registrar_pdf(
     file: UploadFile = File(...),
     service: PdfService = Depends(get_pdf_service),
 ):
-    """Sube un archivo físico PDF, valida su formato y lo envía al servicio para procesamiento en memoria."""
+    """Sube un archivo físico PDF y lo envía al servicio para procesamiento."""
     logger.info(f"Recibiendo solicitud para registrar PDF: {file.filename}")
 
-    if file.content_type != "application/pdf":
-        logger.warning(
-            f"Rechazado: El archivo '{file.filename}' no es un PDF válido (Tipo: {file.content_type})."
-        )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El archivo debe ser un documento PDF válido.",
-        )
-
     documento_guardado = await service.procesar_y_guardar(file)
-    logger.info(f"✅ PDF '{file.filename}' procesado y guardado correctamente.")
-    return {"mensaje": "✅ PDF procesado y guardado con éxito", "datos": documento_guardado}
+    logger.info(f"PDF '{file.filename}' procesado y guardado correctamente.")
+    return {
+        "mensaje": "PDF procesado y guardado con éxito",
+        "datos": documento_guardado,
+    }
 
 
 @router.get("/", response_model=List[PDFDocumentResponse])
@@ -75,5 +60,5 @@ async def borrar_pdf(pdf_id: str, service: PdfService = Depends(get_pdf_service)
             status_code=404, detail="Documento PDF no encontrado o ya fue eliminado."
         )
 
-    logger.info(f"✅ PDF con ID {pdf_id} eliminado exitosamente.")
-    return {"mensaje": "✅ Documento PDF eliminado con éxito."}
+    logger.info(f"PDF con ID {pdf_id} eliminado exitosamente.")
+    return {"mensaje": "Documento PDF eliminado con éxito."}

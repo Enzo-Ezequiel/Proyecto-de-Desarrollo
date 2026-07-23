@@ -1,4 +1,4 @@
-# PDF Extractext
+# PDF Extractor
 
 Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean Code y Feature-Driven Development que extrae texto de archivos en formato PDF y convierte su contenido en formato txt.
 
@@ -137,28 +137,39 @@ docker exec -it fastapi_app uv run pytest tests/ -v
 
 ```
 app/
-├── main.py                 # Punto de entrada
-├── controllers/            # Endpoints HTTP
-├── services/              # Lógica de negocio
-├── models/                # Entidades de dominio
-├── schemas/               # Validación Pydantic
+├── main.py                    # Punto de entrada
+├── controllers/
+│   └── pdf_routes.py         # Endpoints HTTP (Capa 3)
+├── services/
+│   ├── base_service.py       # Servicio genérico CRUD
+│   └── pdf_service.py        # Lógica de negocio PDF (Capa 2)
+├── models/
+│   ├── base_model.py         # Clase base (BaseEntity)
+│   └── pdf_document.py       # Entidad de dominio (Capa 1)
+├── schemas/
+│   └── pdf_schemas.py        # Validación Pydantic
 └── core/
-    ├── config.py
-    ├── database.py
-    ├── exceptions.py
-    ├── repository.py
+    ├── config.py             # Settings (12-Factor)
+    ├── database.py           # Conexión MongoDB
+    ├── exceptions.py         # Excepciones de dominio
+    ├── repository.py         # Interfaz Repository + InMemory
+    ├── mongo_repository.py   # Implementación MongoDB
+    ├── utils.py              # Logger y utilidades
     └── middleware/
+        └── middleware.py     # Middleware de tamaño
 
 config/
-├── requirements.txt
-└── .env.example
+├── .env.example              # Plantilla de entorno (desarrollo)
+└── .env.example.docker       # Plantilla de entorno (Docker)
 
-tests/                     # Suite de pruebas
+tests/
+├── conftest.py               # Fixtures compartidas
+└── test_pdfs.py              # Tests de PDFs
 
-docs/                      # Documentación
+docs/                         # Documentación
 
 scripts/
-└── run.py                 # Lanzador de aplicación
+└── run.py                    # Lanzador de aplicación
 ```
 
 ---

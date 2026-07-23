@@ -1,11 +1,9 @@
 """Servicio base genérico para operaciones CRUD."""
 
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, List, Optional
 
 from app.core.exceptions import ResourceNotFoundException
-from app.core.repository import InMemoryRepository, Repository
-
-T = TypeVar("T")  # Type variable para genéricos
+from app.core.repository import InMemoryRepository, Repository, T
 
 
 class BaseService(Generic[T]):

@@ -66,16 +66,7 @@ package "Capa 3: Controladores (app/controllers/)" {
     }
 }
 
-package "Frontend (Streamlit)" {
-    class "frontend.py" as Frontend << (M, #FF7700) Module >> {
-        + UI_Subir_Documento
-        + UI_Listar_Documentos
-        + UI_Eliminar_Documento
-    }
-}
-
 ' --- Relaciones y Flujo Unidireccional ---
-Frontend ..> PDFRoutes : HTTP Requests (requests)
 
 PDFRoutes ..> PDFService : Delega la lógica
 

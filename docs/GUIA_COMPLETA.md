@@ -164,38 +164,39 @@ async def registrar_pdf(file: UploadFile = File(...)):
 
 ```
 app/
-├── main.py                 # Punto de entrada FastAPI
-├── controllers/            # Endpoints HTTP
-│   ├── pdf_routes.py      # Endpoints para PDFs
-│   └── user_routes.py     # Endpoints para usuarios
-├── services/              # Lógica de negocio
-│   ├── base_service.py    # Servicio genérico
-│   └── pdf_service.py     # Procesamiento de PDFs
-├── models/                # Entidades de dominio
-│   ├── base_model.py      # Clase base
-│   └── pdf_document.py    # Modelo de documento PDF
-├── schemas/               # Validación Pydantic
-│   └── pdf_schemas.py     # Esquemas de PDF
-└── core/                  # Configuración central
-    ├── config.py          # Settings
-    ├── database.py        # Conexión MongoDB
-    ├── exceptions.py      # Excepciones personalizadas
-    ├── repository.py      # Repositorio en memoria
-    ├── mongo_repository.py # Repositorio MongoDB
+├── main.py                    # Punto de entrada FastAPI
+├── controllers/
+│   └── pdf_routes.py         # Endpoints HTTP (Capa 3)
+├── services/
+│   ├── base_service.py       # Servicio genérico CRUD
+│   └── pdf_service.py        # Lógica de negocio PDF (Capa 2)
+├── models/
+│   ├── base_model.py         # Clase base (BaseEntity)
+│   └── pdf_document.py       # Entidad de dominio (Capa 1)
+├── schemas/
+│   └── pdf_schemas.py        # Validación Pydantic
+└── core/
+    ├── config.py             # Settings (12-Factor)
+    ├── database.py           # Conexión MongoDB
+    ├── exceptions.py         # Excepciones de dominio
+    ├── repository.py         # Interfaz Repository + InMemory
+    ├── mongo_repository.py   # Implementación MongoDB
+    ├── utils.py              # Logger y utilidades
     └── middleware/
-        └── middleware.py  # Limitador de tamaño
+        └── middleware.py     # Middleware de tamaño
 
 config/
-├── requirements.txt       # Dependencias
-└── .env.example          # Plantilla de entorno
+├── .env.example              # Plantilla de entorno (desarrollo)
+└── .env.example.docker       # Plantilla de entorno (Docker)
 
 tests/
-└── test_pdfs.py          # Tests de PDFs
+├── conftest.py               # Fixtures compartidas
+└── test_pdfs.py              # Tests de PDFs
 
-docs/                      # Documentación
+docs/                         # Documentación
 
 scripts/
-└── run.py                # Lanzador de aplicación
+└── run.py                    # Lanzador de aplicación
 ```
 
 ---
@@ -303,8 +304,8 @@ class EntityResponse(BaseModel):
 # app/controllers/entity_routes.py
 @router.post("/api/v1/entities/")
 async def crear_entity(request: EntityCreate):
-    resultado = await procesar_entity(request.dict())
-    return EntityResponse(**resultado.dict())
+    resultado = await procesar_entity(request.model_dump())
+    return EntityResponse(**resultado.model_dump())
 ```
 
 ### 5. Registrar en main.py

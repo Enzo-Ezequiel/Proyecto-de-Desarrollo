@@ -1,13 +1,17 @@
-version: '3.8'
-
 services:
   app:
     image: repositoriodesarrollo:${APP_VERSION:-0.1.0}
     build:
-      context: ..  # ¡Muy importante! Le dice que busque el código en la carpeta principal
+      context: ..
       dockerfile: Dockerfile
     container_name: fastapi_app
     ports:
       - "8000:8000"
     env_file:
-      - .env  # Lee el .env que está en esta misma carpeta docker
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

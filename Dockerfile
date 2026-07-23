@@ -15,8 +15,8 @@ RUN apt-get update \
 
 USER appuser
 
-# Instalamos uv 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# Instalamos uv (versión fija para reproducibilidad)
+RUN curl -LsSf https://astral.sh/uv/0.7.13/install.sh | sh
 
 # Subcarpeta exclusiva para tu código
 WORKDIR /home/appuser/app
