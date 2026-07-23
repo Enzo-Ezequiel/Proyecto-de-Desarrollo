@@ -1,85 +1,63 @@
-import io
+"""Servicio de negocio para documentos PDF."""
+
 import hashlib
+import io
+
 import pypdf
 from fastapi import UploadFile
 
-# 1. Importamos tus settings para usar la variable de entorno
 from app.core.config import settings
-
-from app.core.mongo_repository import MongoRepository
+from app.core.exceptions import DuplicateResourceException, ValidationException
+from app.core.repository import Repository
 from app.models.pdf_document import DocumentoPDF
-from app.core.database import get_database
+from app.services.base_service import BaseService
 
 
-async def procesar_y_guardar_pdf(file: UploadFile):
-    """Procesa el PDF en memoria, valida duplicados mediante checksum y persiste la entidad en MongoDB."""
-    # Instancia el repositorio
-    pdf_repo = MongoRepository(
-        db=get_database(), entity_class=DocumentoPDF, collection_name="pdfs"
-    )
+class PdfService(BaseService[DocumentoPDF]):
+    """
+    Orquesta la validación, extracción de texto y persistencia de documentos PDF.
 
-    # Lee el contenido
-    contenido_bytes = await file.read()
+    Las operaciones CRUD genéricas (get_all, get_by_id, delete) las hereda
+    directamente de BaseService; acá solo vive la lógica propia del dominio PDF.
+    """
 
-    # 2. Reemplazamos el "5" duro por la variable de tus settings (12-Factor App)
-    limite_mb = settings.pdf_max_size_mb
-    
-    if len(contenido_bytes) > (limite_mb * 1024 * 1024):
-        raise ValueError(
-            f"El archivo excede el tamaño máximo permitido de {limite_mb}MB."
+    def __init__(self, repository: Repository[DocumentoPDF]) -> None:
+        super().__init__(repository)
+
+    async def procesar_y_guardar(self, file: UploadFile) -> DocumentoPDF:
+        """Valida el tamaño, evita duplicados por checksum, extrae el texto y persiste el PDF."""
+        contenido_bytes = await file.read()
+
+        self._validar_tamano(contenido_bytes)
+        checksum = hashlib.sha256(contenido_bytes).hexdigest()
+        await self._validar_no_duplicado(checksum)
+
+        texto_extraido = self._extraer_texto(contenido_bytes)
+
+        nuevo_documento = DocumentoPDF(
+            nombre_pdf=file.filename,
+            contenido_pdf=texto_extraido,
+            checksum=checksum,
         )
+        return await self.create(nuevo_documento)
 
-    # Genera checksum
-    checksum = hashlib.sha256(contenido_bytes).hexdigest()
+    def _validar_tamano(self, contenido_bytes: bytes) -> None:
+        limite_mb = settings.pdf_max_size_mb
+        if len(contenido_bytes) > (limite_mb * 1024 * 1024):
+            raise ValidationException(
+                f"El archivo excede el tamaño máximo permitido de {limite_mb}MB."
+            )
 
-    # Verifica duplicados
-    pdf_duplicado = await pdf_repo.collection.find_one({"checksum": checksum})
-    if pdf_duplicado:
-        raise ValueError(
-            "Este documento PDF ya existe en la base de datos. No se permiten duplicados."
-        )
+    async def _validar_no_duplicado(self, checksum: str) -> None:
+        duplicado = await self._repository.find_one({"checksum": checksum})
+        if duplicado:
+            raise DuplicateResourceException("Documento PDF", f"checksum {checksum}")
 
-    # Extrae texto del PDF
-    texto_extraido = ""
-    lector_pdf = pypdf.PdfReader(io.BytesIO(contenido_bytes))
-
-    for pagina in lector_pdf.pages:
-        texto = pagina.extract_text()
-        if texto:
-            texto_extraido += texto + "\n"
-
-    # Crea entidad del dominio
-    nuevo_documento = DocumentoPDF(
-        nombre_pdf=file.filename,
-        contenido_pdf=texto_extraido.strip(),
-        checksum=checksum,
-    )
-
-    # Persiste en MongoDB
-    resultado = await pdf_repo.add(nuevo_documento)
-
-    return resultado
-
-
-async def obtener_todos_los_pdfs():
-    """Obtiene todos los PDFs guardados en la base de datos."""
-    pdf_repo = MongoRepository(
-        db=get_database(), entity_class=DocumentoPDF, collection_name="pdfs"
-    )
-    return await pdf_repo.get_all()
-
-
-async def obtener_pdf_por_id(pdf_id: str):
-    """Busca un PDF específico por su ID."""
-    pdf_repo = MongoRepository(
-        db=get_database(), entity_class=DocumentoPDF, collection_name="pdfs"
-    )
-    return await pdf_repo.get_by_id(pdf_id)
-
-
-async def eliminar_pdf(pdf_id: str):
-    """Elimina un PDF de la base de datos usando su ID."""
-    pdf_repo = MongoRepository(
-        db=get_database(), entity_class=DocumentoPDF, collection_name="pdfs"
-    )
-    return await pdf_repo.delete(pdf_id)
+    def _extraer_texto(self, contenido_bytes: bytes) -> str:
+        lector_pdf = pypdf.PdfReader(io.BytesIO(contenido_bytes))
+        texto_extraido = ""
+        for pagina in lector_pdf.pages:
+            texto = pagina.extract_text()
+            if texto:
+                texto_extraido += texto + "\n"
+        return texto_extraido.strip()

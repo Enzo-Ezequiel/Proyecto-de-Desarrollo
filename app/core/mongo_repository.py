@@ -56,3 +56,10 @@ class MongoRepository(Repository[T], Generic[T]):
 
     async def count(self) -> int:
         return await self.collection.count_documents({})
+
+    async def find_one(self, filters: dict) -> Optional[T]:
+        document = await self.collection.find_one(filters)
+        if document:
+            document["id"] = document.pop("_id")
+            return self.entity_class(**document)
+        return None

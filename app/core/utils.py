@@ -13,14 +13,14 @@ from app.core.config import settings
 # 1. Configuramos el formato estándar de los logs para toda la aplicación
 logging.basicConfig(
     stream=sys.stdout,
-    level=getattr(settings, "LOG_LEVEL", "INFO"), # Toma el nivel de tu .env
+    level=settings.log_level.upper(), # Toma el nivel de tu .env
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 # 2. Creamos la instancia principal que usarás en toda la app
 # Reemplazamos getLogger(__name__) para que use el nombre de tu app del .env
-logger = logging.getLogger(getattr(settings, "APP_NAME", "App"))
+logger = logging.getLogger(settings.app_name)
 
 T = TypeVar("T")
 

@@ -33,10 +33,11 @@ class FileSizeLimitMiddleware:
                 # 3. Registramos una advertencia (warning) cuando se rechaza un archivo
                 logger.warning(f"⚠️ Solicitud HTTP rechazada: El tamaño ({request_size} bytes) excede el límite de {self.max_size_bytes} bytes.")
                 
+                limite_mb = self.max_size_bytes / (1024 * 1024)
                 response = JSONResponse(
                     status_code=413,
                     content={
-                        "detail": "El tamaño de la solicitud supera el límite permitido de 10MB."
+                        "detail": f"El tamaño de la solicitud supera el límite permitido de {limite_mb:g}MB."
                     },
                 )
                 await response(scope, receive, send)
