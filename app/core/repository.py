@@ -8,7 +8,7 @@ Principios aplicados:
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 T = TypeVar("T")
 
@@ -39,6 +39,11 @@ class Repository(ABC, Generic[T]):
     async def count(self) -> int:
         pass
 
+    @abstractmethod
+    async def find_one(self, filters: Dict[str, Any]) -> Optional[T]:
+        """Busca la primera entidad cuyos atributos coincidan exactamente con `filters`."""
+        pass
+
 class InMemoryRepository(Repository[T]):
     """Implementación de repositorio en memoria (Asíncrono)."""
 
@@ -67,3 +72,9 @@ class InMemoryRepository(Repository[T]):
 
     async def count(self) -> int:
         return len(self._data)
+
+    async def find_one(self, filters: Dict[str, Any]) -> Optional[T]:
+        for entity in self._data.values():
+            if all(getattr(entity, key, None) == value for key, value in filters.items()):
+                return entity
+        return None

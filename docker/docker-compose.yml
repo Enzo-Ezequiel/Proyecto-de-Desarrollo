@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   app:
+    image: repositoriodesarrollo:${APP_VERSION:-0.1.0}
     build:
       context: ..  # ¡Muy importante! Le dice que busque el código en la carpeta principal
       dockerfile: Dockerfile
