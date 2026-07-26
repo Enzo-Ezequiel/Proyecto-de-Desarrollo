@@ -18,9 +18,17 @@ def test_registrar_archivo_formato_invalido(client):
 
     response = client.post("/api/v1/pdfs/", files=archivo_falso)
     assert response.status_code == 400
-    assert (
-        "El archivo debe ser un documento PDF válido" in response.json()["detail"]
-    )
+    assert "El archivo debe ser un documento PDF válido" in response.json()["detail"]
+
+
+def test_registrar_archivo_con_extension_pdf_pero_content_type_incorrecto(client):
+    """La extensión .pdf NO bypasea el check de content-type: si el MIME no es application/pdf, 400."""
+    archivo = {"file": ("truco.pdf", b"contenido falso", "application/octet-stream")}
+
+    response = client.post("/api/v1/pdfs/", files=archivo)
+
+    assert response.status_code == 400
+    assert "El archivo debe ser un documento PDF válido" in response.json()["detail"]
 
 
 def test_obtener_lista_pdfs_vacia(client):
@@ -28,6 +36,26 @@ def test_obtener_lista_pdfs_vacia(client):
     response = client.get("/api/v1/pdfs/")
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_obtener_lista_devuelve_exactamente_los_registrados(client):
+    """Tras subir 2 PDFs distintos, GET / devuelve una lista con esos 2 nombres en orden de inserción."""
+    from tests.conftest import build_minimal_pdf
+
+    pdf_a = build_minimal_pdf("Texto del primer documento.")
+    pdf_b = build_minimal_pdf("Texto del segundo documento.")
+
+    client.post("/api/v1/pdfs/", files={"file": ("a.pdf", pdf_a, "application/pdf")})
+    client.post("/api/v1/pdfs/", files={"file": ("b.pdf", pdf_b, "application/pdf")})
+
+    response = client.get("/api/v1/pdfs/")
+
+    assert response.status_code == 200
+    lista = response.json()
+    assert len(lista) == 2
+    nombres = [item["nombre_pdf"] for item in lista]
+    assert nombres == ["a.pdf", "b.pdf"]
+    assert lista[0]["checksum"] != lista[1]["checksum"]
 
 
 def test_registrar_pdf_valido_extrae_texto(client, pdf_valido_bytes):
@@ -127,6 +155,35 @@ def test_actualizar_pdf_con_nombre_vacio_es_rechazado(client, pdf_valido_bytes):
     assert response.status_code == 422
 
 
+def test_actualizar_pdf_con_nombre_de_255_caracteres_es_aceptado(
+    client, pdf_valido_bytes
+):
+    """Un nombre de exactamente 255 caracteres respeta el max_length de PDFUpdate y debe pasar (200)."""
+    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
+    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+
+    response = client.patch(
+        f"/api/v1/pdfs/{creado['id']}", json={"nombre_pdf": "a" * 255}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["nombre_pdf"] == "a" * 255
+
+
+def test_actualizar_pdf_con_nombre_de_256_caracteres_es_rechazado(
+    client, pdf_valido_bytes
+):
+    """Un nombre de 256 caracteres excede max_length=255 de PDFUpdate y Pydantic responde 422."""
+    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
+    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+
+    response = client.patch(
+        f"/api/v1/pdfs/{creado['id']}", json={"nombre_pdf": "a" * 256}
+    )
+
+    assert response.status_code == 422
+
+
 def test_borrar_pdf_existente(client, pdf_valido_bytes):
     """DELETE /pdfs/{id} elimina el documento y un GET posterior devuelve 404."""
     archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
@@ -157,7 +214,9 @@ def test_pdf_service_unitario_sin_mongo(pdf_valido_bytes):
         documento = await service.procesar_y_guardar(subida)
         assert TEXTO_PDF_PRUEBA in documento.contenido_pdf
 
-        subida_duplicada = UploadFile(file=io.BytesIO(pdf_valido_bytes), filename="a.pdf")
+        subida_duplicada = UploadFile(
+            file=io.BytesIO(pdf_valido_bytes), filename="a.pdf"
+        )
         with pytest.raises(DuplicateResourceException):
             await service.procesar_y_guardar(subida_duplicada)
 
