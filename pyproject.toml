@@ -81,6 +81,36 @@ extend-exclude = '''
 )/
 '''
 
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+extend-exclude = [".venv", "docs"]
+
+[tool.ruff.lint]
+# E/F: errores de estilo y pyflakes | I: orden de imports
+# B: bugbear (bugs comunes)        | UP: sintaxis moderna de Python
+select = ["E", "F", "I", "B", "UP"]
+
+# E501 (línea > 88) lo delegamos a Black, que ya está configurado con la misma
+# longitud: Black reformatea el código pero no parte docstrings ni comentarios,
+# así que mantener la regla activa solo generaría avisos permanentes sin arreglo.
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-bugbear]
+# B008 prohíbe llamar funciones en los valores por defecto de los argumentos.
+# En FastAPI, Depends()/File()/Query()/etc. en los defaults son EL patrón oficial
+# de inyección de dependencias, no un bug: las excluimos explícitamente.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.File",
+    "fastapi.Form",
+    "fastapi.Body",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Header",
+    "fastapi.Cookie",
+]
+
 [tool.isort]
 profile = "black"
 multi_line_mode = 3

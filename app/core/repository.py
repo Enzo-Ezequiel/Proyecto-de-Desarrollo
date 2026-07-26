@@ -8,7 +8,7 @@ Principios aplicados:
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -20,11 +20,11 @@ class Repository(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def get_by_id(self, entity_id: str) -> Optional[T]:
+    async def get_by_id(self, entity_id: str) -> T | None:
         pass
 
     @abstractmethod
-    async def get_all(self) -> List[T]:
+    async def get_all(self) -> list[T]:
         pass
 
     @abstractmethod
@@ -40,7 +40,7 @@ class Repository(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def find_one(self, filters: Dict[str, Any]) -> Optional[T]:
+    async def find_one(self, filters: dict[str, Any]) -> T | None:
         """Busca la primera entidad cuyos atributos coincidan exactamente con `filters`."""
         pass
 
@@ -48,16 +48,16 @@ class InMemoryRepository(Repository[T]):
     """Implementación de repositorio en memoria (Asíncrono)."""
 
     def __init__(self) -> None:
-        self._data: Dict[str, T] = {}
+        self._data: dict[str, T] = {}
 
     async def add(self, entity: T) -> T:
         self._data[str(entity.id)] = entity
         return entity
 
-    async def get_by_id(self, entity_id: str) -> Optional[T]:
+    async def get_by_id(self, entity_id: str) -> T | None:
         return self._data.get(entity_id)
 
-    async def get_all(self) -> List[T]:
+    async def get_all(self) -> list[T]:
         return list(self._data.values())
 
     async def update(self, entity: T) -> T:
@@ -73,7 +73,7 @@ class InMemoryRepository(Repository[T]):
     async def count(self) -> int:
         return len(self._data)
 
-    async def find_one(self, filters: Dict[str, Any]) -> Optional[T]:
+    async def find_one(self, filters: dict[str, Any]) -> T | None:
         for entity in self._data.values():
             if all(getattr(entity, key, None) == value for key, value in filters.items()):
                 return entity

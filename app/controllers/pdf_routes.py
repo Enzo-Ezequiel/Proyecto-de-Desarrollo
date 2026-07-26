@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -47,7 +45,7 @@ async def registrar_pdf(
     return {"mensaje": "✅ PDF procesado y guardado con éxito", "datos": documento_guardado}
 
 
-@router.get("/", response_model=List[PDFDocumentResponse])
+@router.get("/", response_model=list[PDFDocumentResponse])
 async def listar_pdfs(service: PdfService = Depends(get_pdf_service)):
     """Devuelve una lista con todos los documentos PDF procesados."""
     logger.debug("Solicitando la lista de todos los PDFs.")

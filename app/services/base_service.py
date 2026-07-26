@@ -1,6 +1,6 @@
 """Servicio base genérico para operaciones CRUD."""
 
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, TypeVar
 
 from app.core.exceptions import ResourceNotFoundException
 from app.core.repository import InMemoryRepository, Repository
@@ -16,7 +16,7 @@ class BaseService(Generic[T]):
     Usa el patrón Repository para abstraer el acceso a datos.
     """
 
-    def __init__(self, repository: Optional[Repository[T]] = None) -> None:
+    def __init__(self, repository: Repository[T] | None = None) -> None:
         """
         Inicializa el servicio con un repositorio.
 
@@ -31,13 +31,13 @@ class BaseService(Generic[T]):
         """
         return await self._repository.add(entity)
 
-    async def get_by_id(self, entity_id: str) -> Optional[T]:
+    async def get_by_id(self, entity_id: str) -> T | None:
         """
         Obtiene una entidad por su ID.
         """
         return await self._repository.get_by_id(entity_id)
 
-    async def get_all(self) -> List[T]:
+    async def get_all(self) -> list[T]:
         """
         Obtiene todas las entidades.
         """

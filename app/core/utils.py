@@ -6,8 +6,10 @@ Módulo para funciones auxiliares y utilidades comunes reutilizables.
 
 import logging
 import sys
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
+
 from app.core.config import settings
 
 # 1. Configuramos el formato estándar de los logs para toda la aplicación.

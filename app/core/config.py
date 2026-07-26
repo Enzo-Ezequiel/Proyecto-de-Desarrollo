@@ -1,6 +1,6 @@
 """Configuración de la aplicación FastAPI y centralizador de variables de entorno."""
+
 from pydantic_settings import BaseSettings
-from typing import List
 
 # 1. CONSTANTES GLOBALES: Requeridas obligatoriamente para aprobar el Check 7 de Clean Code
 APP_NAME = "Repositorio Desarrollo"
@@ -25,10 +25,10 @@ class Settings(BaseSettings):
     api_redoc_url: str = "/redoc"
     
     # CORS (Configuración para desarrollo)
-    cors_origins: List[str] = ["http://localhost", "http://localhost:3000", "http://localhost:8000"]
-    cors_allow_methods: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    cors_origins: list[str] = ["http://localhost", "http://localhost:3000", "http://localhost:8000"]
+    cors_allow_methods: list[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     cors_allow_credentials: bool = True
-    cors_allow_headers: List[str] = ["*"]
+    cors_allow_headers: list[str] = ["*"]
     
     # Límite de archivos PDF y Logging
     pdf_max_size_mb: int = 5

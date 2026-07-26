@@ -1,9 +1,11 @@
 from motor.motor_asyncio import AsyncIOMotorClient
+
 # Importamos settings desde tu archivo de configuración
 from app.core.config import settings
 
 # 1. Importamos nuestro logger
 from app.core.utils import logger
+
 
 class Database:
     client: AsyncIOMotorClient = None

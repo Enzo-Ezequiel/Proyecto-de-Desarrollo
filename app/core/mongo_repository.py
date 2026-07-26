@@ -1,5 +1,7 @@
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, TypeVar
+
 from motor.motor_asyncio import AsyncIOMotorDatabase
+
 from app.core.repository import Repository
 
 T = TypeVar("T")
@@ -9,7 +11,7 @@ class MongoRepository(Repository[T], Generic[T]):
     Implementación del repositorio para MongoDB usando Motor (asíncrono).
     """
 
-    def __init__(self, db: AsyncIOMotorDatabase, collection_name: str, entity_class: Type[T]):
+    def __init__(self, db: AsyncIOMotorDatabase, collection_name: str, entity_class: type[T]):
         """
         Inicializa el repositorio.
         :param db: Instancia de la base de datos MongoDB.
@@ -27,7 +29,7 @@ class MongoRepository(Repository[T], Generic[T]):
         await self.collection.insert_one(document)
         return entity
 
-    async def get_by_id(self, entity_id: str) -> Optional[T]:
+    async def get_by_id(self, entity_id: str) -> T | None:
         document = await self.collection.find_one({"_id": entity_id})
         if document:
             # Revertimos '_id' a 'id' para que la entidad de dominio lo entienda
@@ -35,7 +37,7 @@ class MongoRepository(Repository[T], Generic[T]):
             return self.entity_class(**document)
         return None
 
-    async def get_all(self) -> List[T]:
+    async def get_all(self) -> list[T]:
         entities = []
         # find() en motor devuelve un cursor asíncrono
         async for document in self.collection.find():
@@ -57,7 +59,7 @@ class MongoRepository(Repository[T], Generic[T]):
     async def count(self) -> int:
         return await self.collection.count_documents({})
 
-    async def find_one(self, filters: dict) -> Optional[T]:
+    async def find_one(self, filters: dict) -> T | None:
         document = await self.collection.find_one(filters)
         if document:
             document["id"] = document.pop("_id")

@@ -11,7 +11,6 @@ Principios aplicados:
 """
 
 from datetime import datetime, timezone
-from typing import Optional
 from uuid import uuid4
 
 
@@ -27,9 +26,9 @@ class BaseEntity:
 
     def __init__(
         self,
-        id: Optional[str] = None,  # Cambiamos UUID por str
-        created_at: Optional[datetime] = None,
-        updated_at: Optional[datetime] = None,
+        id: str | None = None,  # Cambiamos UUID por str
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
     ) -> None:
         """
         Inicializa una nueva entidad.

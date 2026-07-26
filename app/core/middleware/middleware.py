@@ -6,6 +6,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 # 1. Importamos nuestro logger centralizado
 from app.core.utils import logger
 
+
 class FileSizeLimitMiddleware:
     """Rechaza solicitudes HTTP cuyo `Content-Length` supera el límite configurado."""
 
