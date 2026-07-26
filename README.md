@@ -90,6 +90,64 @@ La API estará disponible en:
 uv run pytest tests/ -v
 ```
 
+Los 10 tests de `tests/test_pdfs.py` usan un repositorio en memoria (`InMemoryRepository`) inyectado vía `app.dependency_overrides`, así que corren solos, sin necesitar el paso 5 (Mongo levantada). Es el primer chequeo antes de probar contra la app real.
+
+### 8. Probar el flujo completo contra la app real (verificación manual)
+
+Con Mongo y la app corriendo (pasos 5 y 6), esto es un paso a paso para confirmar en caliente que el CRUD completo funciona de punta a punta — subir un PDF, ver que se rechacen duplicados y archivos demasiado grandes, y confirmar que el borrado es real.
+
+**8.1. Generar un PDF de prueba** (o usá cualquier `.pdf` real que tengas a mano):
+
+```powershell
+uv run python -c "import sys; sys.path.insert(0, 'tests'); from conftest import build_minimal_pdf; open('prueba.pdf','wb').write(build_minimal_pdf('Texto de prueba end-to-end.'))"
+```
+
+**8.2. Subir el PDF** (debe devolver `201` y el texto extraído):
+
+```powershell
+curl.exe -s -w "`nHTTP %{http_code}`n" -X POST http://127.0.0.1:8000/api/v1/pdfs/ -F "file=@prueba.pdf"
+```
+
+Guardá el `id` que te devuelve en `datos.id` — lo vas a necesitar en los pasos 8.4 y 8.5.
+
+**8.3. Subir el mismo PDF de nuevo** (debe rechazarlo por duplicado, `400`):
+
+```powershell
+curl.exe -s -w "`nHTTP %{http_code}`n" -X POST http://127.0.0.1:8000/api/v1/pdfs/ -F "file=@prueba.pdf"
+```
+
+**8.4. Buscarlo por id** (reemplazá `<ID>` por el que guardaste en 8.2; debe devolver `200`):
+
+```powershell
+curl.exe -s -w "`nHTTP %{http_code}`n" http://127.0.0.1:8000/api/v1/pdfs/<ID>
+```
+
+**8.5. Borrarlo y confirmar que ya no existe** (`200` al borrar, `404` al volver a buscarlo):
+
+```powershell
+curl.exe -s -w "`nHTTP %{http_code}`n" -X DELETE http://127.0.0.1:8000/api/v1/pdfs/<ID>
+curl.exe -s -w "`nHTTP %{http_code}`n" http://127.0.0.1:8000/api/v1/pdfs/<ID>
+```
+
+**8.6. Probar el límite de tamaño** (`PDF_MAX_SIZE_MB` en tu `.env`; debe devolver `413`):
+
+```powershell
+uv run python -c "import sys; sys.path.insert(0, 'tests'); from conftest import build_minimal_pdf; open('grande.pdf','wb').write(build_minimal_pdf('grande') + bytes(6*1024*1024))"
+curl.exe -s -w "`nHTTP %{http_code}`n" -X POST http://127.0.0.1:8000/api/v1/pdfs/ -F "file=@grande.pdf"
+```
+
+Resultado esperado de todo el recorrido:
+
+| Paso | Resultado esperado |
+|---|---|
+| 8.2 — subir PDF válido | `201`, `contenido_pdf` con el texto extraído |
+| 8.3 — subir el mismo PDF de nuevo | `400`, `"... ya existe"` |
+| 8.4 — `GET` por id | `200`, mismos datos que en 8.2 |
+| 8.5 — `DELETE` y `GET` posterior | `200` y luego `404` |
+| 8.6 — PDF de ~6MB (> límite configurado) | `413`, mensaje con el límite real (ej. `5MB`) |
+
+Si los seis pasos dan el código esperado, el CRUD, la validación de tamaño, el anti-duplicados y la extracción de texto están funcionando de punta a punta contra una MongoDB real (no solo en los tests).
+
 ---
 
 ## Inicio rapido para ejecucion
@@ -150,8 +208,8 @@ app/
     └── middleware/
 
 config/
-├── requirements.txt
-└── .env.example
+├── .env.example
+└── .env.example.docker
 
 tests/                     # Suite de pruebas
 
@@ -269,6 +327,6 @@ winget install --id=astral-sh.uv -e
 
 ---
 
-**Última actualización:** 20 de mayo de 2026
+**Última actualización:** 26 de julio de 2026
 **Versión de Python:** 3.10+
 **Estado:** Desarrollo activo
