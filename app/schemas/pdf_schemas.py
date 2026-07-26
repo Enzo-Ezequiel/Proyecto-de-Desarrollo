@@ -1,6 +1,12 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class PDFUpdate(BaseModel):
+    """Campos editables de un documento PDF ya persistido."""
+
+    nombre_pdf: str = Field(min_length=1, max_length=255)
 
 
 class PDFDocumentResponse(BaseModel):

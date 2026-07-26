@@ -122,14 +122,20 @@ curl.exe -s -w "`nHTTP %{http_code}`n" -X POST http://127.0.0.1:8000/api/v1/pdfs
 curl.exe -s -w "`nHTTP %{http_code}`n" http://127.0.0.1:8000/api/v1/pdfs/<ID>
 ```
 
-**8.5. Borrarlo y confirmar que ya no existe** (`200` al borrar, `404` al volver a buscarlo):
+**8.5. Renombrarlo** (debe devolver `200` con el `nombre_pdf` nuevo):
+
+```powershell
+curl.exe -s -w "`nHTTP %{http_code}`n" -X PATCH http://127.0.0.1:8000/api/v1/pdfs/<ID> -H "Content-Type: application/json" -d "{\"nombre_pdf\": \"renombrado.pdf\"}"
+```
+
+**8.6. Borrarlo y confirmar que ya no existe** (`200` al borrar, `404` al volver a buscarlo):
 
 ```powershell
 curl.exe -s -w "`nHTTP %{http_code}`n" -X DELETE http://127.0.0.1:8000/api/v1/pdfs/<ID>
 curl.exe -s -w "`nHTTP %{http_code}`n" http://127.0.0.1:8000/api/v1/pdfs/<ID>
 ```
 
-**8.6. Probar el límite de tamaño** (`PDF_MAX_SIZE_MB` en tu `.env`; debe devolver `413`):
+**8.7. Probar el límite de tamaño** (`PDF_MAX_SIZE_MB` en tu `.env`; debe devolver `413`):
 
 ```powershell
 uv run python -c "import sys; sys.path.insert(0, 'tests'); from conftest import build_minimal_pdf; open('grande.pdf','wb').write(build_minimal_pdf('grande') + bytes(6*1024*1024))"
@@ -143,10 +149,11 @@ Resultado esperado de todo el recorrido:
 | 8.2 — subir PDF válido | `201`, `contenido_pdf` con el texto extraído |
 | 8.3 — subir el mismo PDF de nuevo | `400`, `"... ya existe"` |
 | 8.4 — `GET` por id | `200`, mismos datos que en 8.2 |
-| 8.5 — `DELETE` y `GET` posterior | `200` y luego `404` |
-| 8.6 — PDF de ~6MB (> límite configurado) | `413`, mensaje con el límite real (ej. `5MB`) |
+| 8.5 — `PATCH` renombrando | `200`, con el `nombre_pdf` nuevo |
+| 8.6 — `DELETE` y `GET` posterior | `200` y luego `404` |
+| 8.7 — PDF de ~6MB (> límite configurado) | `413`, mensaje con el límite real (ej. `5MB`) |
 
-Si los seis pasos dan el código esperado, el CRUD, la validación de tamaño, el anti-duplicados y la extracción de texto están funcionando de punta a punta contra una MongoDB real (no solo en los tests).
+Si los siete pasos dan el código esperado, el CRUD completo, la validación de tamaño, el anti-duplicados y la extracción de texto están funcionando de punta a punta contra una MongoDB real (no solo en los tests).
 
 ---
 

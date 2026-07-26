@@ -11,6 +11,7 @@ from app.models.pdf_document import DocumentoPDF
 from app.schemas.pdf_schemas import (
     MensajeResponse,
     PDFDocumentResponse,
+    PDFUpdate,
     PDFUploadResponse,
 )
 from app.services.pdf_service import PdfService
@@ -42,7 +43,7 @@ async def registrar_pdf(
         )
 
     documento_guardado = await service.procesar_y_guardar(file)
-    logger.info(f"✅ PDF '{file.filename}' procesado y guardado correctamente.")
+    logger.info(f"PDF '{file.filename}' procesado y guardado correctamente.")
     return {"mensaje": "✅ PDF procesado y guardado con éxito", "datos": documento_guardado}
 
 
@@ -64,6 +65,19 @@ async def obtener_pdf(pdf_id: str, service: PdfService = Depends(get_pdf_service
     return pdf
 
 
+@router.patch("/{pdf_id}", response_model=PDFDocumentResponse)
+async def actualizar_pdf(
+    pdf_id: str,
+    datos: PDFUpdate,
+    service: PdfService = Depends(get_pdf_service),
+):
+    """Actualiza los datos editables de un documento PDF ya persistido."""
+    logger.info(f"Solicitud para actualizar PDF con ID: {pdf_id}")
+    documento = await service.renombrar(pdf_id, datos.nombre_pdf)
+    logger.info(f"PDF con ID {pdf_id} actualizado exitosamente.")
+    return documento
+
+
 @router.delete("/{pdf_id}", response_model=MensajeResponse)
 async def borrar_pdf(pdf_id: str, service: PdfService = Depends(get_pdf_service)):
     """Elimina un PDF de la base de datos de forma permanente."""
@@ -75,5 +89,5 @@ async def borrar_pdf(pdf_id: str, service: PdfService = Depends(get_pdf_service)
             status_code=404, detail="Documento PDF no encontrado o ya fue eliminado."
         )
 
-    logger.info(f"✅ PDF con ID {pdf_id} eliminado exitosamente.")
+    logger.info(f"PDF con ID {pdf_id} eliminado exitosamente.")
     return {"mensaje": "✅ Documento PDF eliminado con éxito."}

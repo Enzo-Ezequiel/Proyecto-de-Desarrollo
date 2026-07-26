@@ -135,12 +135,21 @@ Ejemplo:
 
 ```python
 # app/services/pdf_service.py
-async def procesar_y_guardar_pdf(file: UploadFile):
-    # Validar formato PDF
-    # Extraer texto con pypdf
-    # Verificar duplicados por checksum
-    # Persistir en MongoDB
+class PdfService(BaseService[DocumentoPDF]):
+    def __init__(self, repository: Repository[DocumentoPDF]) -> None:
+        super().__init__(repository)
+
+    async def procesar_y_guardar(self, file: UploadFile) -> DocumentoPDF:
+        # Validar tamaño (settings.pdf_max_size_mb)
+        # Calcular checksum y verificar duplicados
+        # Extraer texto con pypdf
+        # Persistir vía el repositorio inyectado
 ```
+
+El servicio recibe su `Repository` por inyección (Dependency Inversion): no conoce
+MongoDB directamente, lo que permite testearlo con `InMemoryRepository`. Las
+operaciones CRUD genéricas (`create`, `get_all`, `get_by_id`, `update`, `delete`)
+se heredan de `BaseService[T]` en lugar de reimplementarse.
 
 ### CAPA 3: Controladores (Endpoints HTTP)
 
@@ -152,11 +161,22 @@ Ejemplo:
 
 ```python
 # app/controllers/pdf_routes.py
-@router.post("/api/v1/pdfs/")
-async def registrar_pdf(file: UploadFile = File(...)):
-    documento = await procesar_y_guardar_pdf(file)
+router = APIRouter(prefix=f"{settings.api_prefix}/pdfs", tags=["Documentos PDF"])
+
+@router.post("/", response_model=PDFUploadResponse, status_code=201)
+async def registrar_pdf(
+    file: UploadFile = File(...),
+    service: PdfService = Depends(get_pdf_service),
+):
+    documento = await service.procesar_y_guardar(file)
     return {"mensaje": "PDF procesado", "datos": documento}
 ```
+
+El controlador no contiene lógica de negocio: solo valida la entrada HTTP
+(`content_type`), delega en el servicio inyectado y declara su contrato de salida
+con `response_model`. Los errores de dominio (`ValidationException`,
+`DuplicateResourceException`, `ResourceNotFoundException`) los traduce a códigos
+HTTP un `exception_handler` centralizado en `app/main.py`.
 
 ---
 
@@ -166,8 +186,7 @@ async def registrar_pdf(file: UploadFile = File(...)):
 app/
 ├── main.py                 # Punto de entrada FastAPI
 ├── controllers/            # Endpoints HTTP
-│   ├── pdf_routes.py      # Endpoints para PDFs
-│   └── user_routes.py     # Endpoints para usuarios
+│   └── pdf_routes.py      # Endpoints para PDFs
 ├── services/              # Lógica de negocio
 │   ├── base_service.py    # Servicio genérico
 │   └── pdf_service.py     # Procesamiento de PDFs
@@ -180,16 +199,17 @@ app/
     ├── config.py          # Settings
     ├── database.py        # Conexión MongoDB
     ├── exceptions.py      # Excepciones personalizadas
-    ├── repository.py      # Repositorio en memoria
+    ├── repository.py      # Interfaz Repository + implementación en memoria
     ├── mongo_repository.py # Repositorio MongoDB
     └── middleware/
         └── middleware.py  # Limitador de tamaño
 
 config/
-├── requirements.txt       # Dependencias
-└── .env.example          # Plantilla de entorno
+├── .env.example          # Plantilla de entorno (local)
+└── .env.example.docker   # Plantilla de entorno (contenedores)
 
 tests/
+├── conftest.py           # Fixtures: PDF de prueba y repositorio en memoria
 └── test_pdfs.py          # Tests de PDFs
 
 docs/                      # Documentación
@@ -205,11 +225,15 @@ scripts/
 ### PDFs
 
 ```
-POST   /api/v1/pdfs/                 - Subir y procesar PDF
-GET    /api/v1/pdfs/                 - Listar todos los PDFs
-GET    /api/v1/pdfs/{pdf_id}         - Obtener PDF por ID
-DELETE /api/v1/pdfs/{pdf_id}         - Eliminar PDF
+POST   /api/v1/pdfs/                 - Subir y procesar PDF          (201)
+GET    /api/v1/pdfs/                 - Listar todos los PDFs         (200)
+GET    /api/v1/pdfs/{pdf_id}         - Obtener PDF por ID            (200 / 404)
+PATCH  /api/v1/pdfs/{pdf_id}         - Actualizar nombre del PDF     (200 / 404)
+DELETE /api/v1/pdfs/{pdf_id}         - Eliminar PDF                  (200 / 404)
 ```
+
+Códigos de error del POST: `400` si el archivo no es PDF o si su checksum ya
+existe (duplicado), `413` si supera `PDF_MAX_SIZE_MB`.
 
 ### Ejemplos de Uso
 
@@ -230,6 +254,14 @@ Obtener PDF específico:
 
 ```powershell
 curl "http://localhost:8000/api/v1/pdfs/{pdf_id}"
+```
+
+Actualizar el nombre de un PDF:
+
+```powershell
+curl -X PATCH "http://localhost:8000/api/v1/pdfs/{pdf_id}" `
+  -H "Content-Type: application/json" `
+  -d '{\"nombre_pdf\": \"nuevo-nombre.pdf\"}'
 ```
 
 Eliminar PDF:

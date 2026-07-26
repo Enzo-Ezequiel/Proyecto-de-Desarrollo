@@ -10,17 +10,20 @@ from functools import wraps
 from typing import Any, Callable, TypeVar
 from app.core.config import settings
 
-# 1. Configuramos el formato estándar de los logs para toda la aplicación
+# 1. Configuramos el formato estándar de los logs para toda la aplicación.
+# El logger raíz queda en WARNING para que las librerías de terceros (pymongo,
+# python_multipart, etc.) no inunden stdout con su propio DEBUG.
 logging.basicConfig(
     stream=sys.stdout,
-    level=settings.log_level.upper(), # Toma el nivel de tu .env
+    level=logging.WARNING,
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-# 2. Creamos la instancia principal que usarás en toda la app
-# Reemplazamos getLogger(__name__) para que use el nombre de tu app del .env
+# 2. Creamos la instancia principal que usarás en toda la app.
+# LOG_LEVEL del .env aplica solo a NUESTROS logs, no a los de las dependencias.
 logger = logging.getLogger(settings.app_name)
+logger.setLevel(settings.log_level.upper())
 
 T = TypeVar("T")
 

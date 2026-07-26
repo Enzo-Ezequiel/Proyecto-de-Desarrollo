@@ -7,7 +7,11 @@ import pypdf
 from fastapi import UploadFile
 
 from app.core.config import settings
-from app.core.exceptions import DuplicateResourceException, ValidationException
+from app.core.exceptions import (
+    DuplicateResourceException,
+    ResourceNotFoundException,
+    ValidationException,
+)
 from app.core.repository import Repository
 from app.models.pdf_document import DocumentoPDF
 from app.services.base_service import BaseService
@@ -40,6 +44,16 @@ class PdfService(BaseService[DocumentoPDF]):
             checksum=checksum,
         )
         return await self.create(nuevo_documento)
+
+    async def renombrar(self, pdf_id: str, nuevo_nombre: str) -> DocumentoPDF:
+        """Actualiza el nombre de un documento ya persistido y refresca su updated_at."""
+        documento = await self.get_by_id(pdf_id)
+        if documento is None:
+            raise ResourceNotFoundException("Documento PDF", pdf_id)
+
+        documento.nombre_pdf = nuevo_nombre
+        documento.update_timestamp()
+        return await self.update(documento)
 
     def _validar_tamano(self, contenido_bytes: bytes) -> None:
         limite_mb = settings.pdf_max_size_mb

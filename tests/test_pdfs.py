@@ -87,6 +87,46 @@ def test_obtener_pdf_por_id_inexistente(client):
     assert response.status_code == 404
 
 
+def test_actualizar_nombre_pdf_existente(client, pdf_valido_bytes):
+    """PATCH /pdfs/{id} renombra el documento y refresca updated_at."""
+    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
+    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+
+    response = client.patch(
+        f"/api/v1/pdfs/{creado['id']}", json={"nombre_pdf": "renombrado.pdf"}
+    )
+
+    assert response.status_code == 200
+    actualizado = response.json()
+    assert actualizado["nombre_pdf"] == "renombrado.pdf"
+    assert actualizado["id"] == creado["id"]
+    # El contenido y el checksum no se tocan al renombrar
+    assert actualizado["checksum"] == creado["checksum"]
+    assert actualizado["contenido_pdf"] == creado["contenido_pdf"]
+
+    # El cambio quedó persistido, no es solo la respuesta
+    relectura = client.get(f"/api/v1/pdfs/{creado['id']}")
+    assert relectura.json()["nombre_pdf"] == "renombrado.pdf"
+
+
+def test_actualizar_pdf_inexistente(client):
+    """PATCH /pdfs/{id} devuelve 404 cuando el id no existe."""
+    response = client.patch(
+        "/api/v1/pdfs/id-que-no-existe", json={"nombre_pdf": "otro.pdf"}
+    )
+    assert response.status_code == 404
+
+
+def test_actualizar_pdf_con_nombre_vacio_es_rechazado(client, pdf_valido_bytes):
+    """PATCH /pdfs/{id} valida el body con Pydantic y rechaza un nombre vacío (422)."""
+    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
+    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+
+    response = client.patch(f"/api/v1/pdfs/{creado['id']}", json={"nombre_pdf": ""})
+
+    assert response.status_code == 422
+
+
 def test_borrar_pdf_existente(client, pdf_valido_bytes):
     """DELETE /pdfs/{id} elimina el documento y un GET posterior devuelve 404."""
     archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
