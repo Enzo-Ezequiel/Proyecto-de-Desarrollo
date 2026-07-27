@@ -1,16 +1,13 @@
-"""
-Patrón Repository: Abstracción para acceso a datos.
+"""Patrón Repository: abstracción para acceso a datos.
 
-Define interfaces y implementaciones de repositorio para persistencia.
-Principios aplicados:
-- Dependency Inversion Principle: Dependemos de abstracciones, no de implementaciones.
-- Single Responsibility: Solo gestiona acceso a datos.
+Interfaces e implementaciones para persistencia.
 """
 
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
+
 
 class Repository(ABC, Generic[T]):
     """Interfaz abstracta para repositorios genéricos asíncronos."""
@@ -41,11 +38,12 @@ class Repository(ABC, Generic[T]):
 
     @abstractmethod
     async def find_one(self, filters: dict[str, Any]) -> T | None:
-        """Busca la primera entidad cuyos atributos coincidan exactamente con `filters`."""
+        """Busca primera entidad que coincida exactamente con filters."""
         pass
 
+
 class InMemoryRepository(Repository[T]):
-    """Implementación de repositorio en memoria (Asíncrono)."""
+    """Repo en memoria (asíncrono)."""
 
     def __init__(self) -> None:
         self._data: dict[str, T] = {}
@@ -75,6 +73,8 @@ class InMemoryRepository(Repository[T]):
 
     async def find_one(self, filters: dict[str, Any]) -> T | None:
         for entity in self._data.values():
-            if all(getattr(entity, key, None) == value for key, value in filters.items()):
+            if all(
+                getattr(entity, key, None) == value for key, value in filters.items()
+            ):
                 return entity
         return None

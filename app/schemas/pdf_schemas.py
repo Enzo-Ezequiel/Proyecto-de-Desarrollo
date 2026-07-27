@@ -4,13 +4,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PDFUpdate(BaseModel):
-    """Campos editables de un documento PDF ya persistido."""
+    """Campos editables de un PDF guardado (solo el nombre)."""
 
     nombre_pdf: str = Field(min_length=1, max_length=255)
 
 
 class PDFDocumentResponse(BaseModel):
-    """Representación pública de un documento PDF persistido."""
+    """Cómo se ve un PDF guardado en la API."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -23,13 +23,13 @@ class PDFDocumentResponse(BaseModel):
 
 
 class PDFUploadResponse(BaseModel):
-    """Respuesta del endpoint de registro de un PDF."""
+    """Respuesta al subir un PDF: mensaje + datos del documento."""
 
     mensaje: str
     datos: PDFDocumentResponse
 
 
 class MensajeResponse(BaseModel):
-    """Respuesta simple de confirmación (ej. borrado exitoso)."""
+    """Respuesta simple con solo mensaje (ej. borrado OK)."""
 
     mensaje: str
