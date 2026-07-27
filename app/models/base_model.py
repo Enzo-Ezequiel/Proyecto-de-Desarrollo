@@ -1,13 +1,5 @@
 """
-Modelo Base: Clase base para todas las entidades del dominio.
-
-Este módulo proporciona la clase base que todas las entidades de negocio
-deben extender. Sigue el principio DRY y permite reutilizar atributos
-comunes como timestamps y identificadores.
-
-Principios aplicados:
-- DRY: Evita duplicación de código
-- Single Responsibility: Solo gestiona la representación base de entidades
+Clase base para entidades del dominio. ID, timestamps y métodos de comparación.
 """
 
 from datetime import datetime, timezone
@@ -15,48 +7,33 @@ from uuid import uuid4
 
 
 class BaseEntity:
-    """
-    Clase base para todas las entidades del dominio.
-
-    Atributos:
-        id: Identificador único de la entidad (String).
-        created_at: Fecha y hora de creación de la entidad.
-        updated_at: Fecha y hora de la última actualización.
-    """
+    """Entidad base: trae ID único, created_at y updated_at automáticos."""
 
     def __init__(
         self,
-        id: str | None = None,  # Cambiamos UUID por str
+        id: str | None = None,
         created_at: datetime | None = None,
         updated_at: datetime | None = None,
     ) -> None:
-        """
-        Inicializa una nueva entidad.
-
-        Args:
-            id: ID único de la entidad. Si no se proporciona, se genera uno nuevo en string.
-            created_at: Marca de tiempo de creación. Si no se proporciona, usa la actual.
-            updated_at: Marca de tiempo de actualización. Si no se proporciona, usa la actual.
-        """
-        # Convertimos el UUID generado a texto, o guardamos el string que venga de MongoDB
+        """Inicializa entidad. Genera ID y timestamps si no se pasan."""
         self.id: str = str(id) if id else str(uuid4())
         self.created_at: datetime = created_at or datetime.now(timezone.utc)
         self.updated_at: datetime = updated_at or datetime.now(timezone.utc)
 
     def update_timestamp(self) -> None:
-        """Actualiza la marca de tiempo de la última modificación."""
+        """Actualiza updated_at a ahora."""
         self.updated_at = datetime.now(timezone.utc)
 
     def __eq__(self, other: object) -> bool:
-        """Compara dos entidades por su ID."""
+        """Compara por ID."""
         if not isinstance(other, BaseEntity):
             return False
         return self.id == other.id
 
     def __hash__(self) -> int:
-        """Permite usar entidades en sets y como claves de diccionarios."""
+        """Para usar en sets y como keys de dict."""
         return hash(self.id)
 
     def __repr__(self) -> str:
-        """Representación legible de la entidad."""
+        """Repr legible para debug."""
         return f"{self.__class__.__name__}(id={self.id})"

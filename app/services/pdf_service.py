@@ -1,4 +1,4 @@
-"""Servicio de negocio para documentos PDF."""
+"""Lógica de negocio para PDFs: validación, extracción de texto y guardado."""
 
 import hashlib
 import io
@@ -18,18 +18,13 @@ from app.services.base_service import BaseService
 
 
 class PdfService(BaseService[DocumentoPDF]):
-    """
-    Orquesta la validación, extracción de texto y persistencia de documentos PDF.
-
-    Las operaciones CRUD genéricas (get_all, get_by_id, delete) las hereda
-    directamente de BaseService; acá solo vive la lógica propia del dominio PDF.
-    """
+    """Servicio específico de PDFs. Lo común (CRUD) viene de BaseService."""
 
     def __init__(self, repository: Repository[DocumentoPDF]) -> None:
         super().__init__(repository)
 
     async def procesar_y_guardar(self, file: UploadFile) -> DocumentoPDF:
-        """Valida el tamaño, evita duplicados por checksum, extrae el texto y persiste el PDF."""
+        """Valida archivo, verifica duplicados y guarda."""
         contenido_bytes = await file.read()
 
         self._validar_tamano(contenido_bytes)
@@ -46,7 +41,7 @@ class PdfService(BaseService[DocumentoPDF]):
         return await self.create(nuevo_documento)
 
     async def renombrar(self, pdf_id: str, nuevo_nombre: str) -> DocumentoPDF:
-        """Actualiza el nombre de un documento ya persistido y refresca su updated_at."""
+        """Renombra PDF y actualiza timestamp."""
         documento = await self.get_by_id(pdf_id)
         if documento is None:
             raise ResourceNotFoundException("Documento PDF", pdf_id)
@@ -59,7 +54,7 @@ class PdfService(BaseService[DocumentoPDF]):
         limite_mb = settings.pdf_max_size_mb
         if len(contenido_bytes) > (limite_mb * 1024 * 1024):
             raise ValidationException(
-                f"El archivo excede el tamaño máximo permitido de {limite_mb}MB."
+                f"El archivo excede el tamaño máximo de {limite_mb}MB."
             )
 
     async def _validar_no_duplicado(self, checksum: str) -> None:

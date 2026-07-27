@@ -18,8 +18,10 @@ router = APIRouter(prefix=f"{settings.api_prefix}/pdfs", tags=["Documentos PDF"]
 
 
 def get_pdf_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> PdfService:
-    """Inyecta el servicio de PDFs con su repositorio de MongoDB."""
-    repository = MongoRepository(db=db, collection_name="pdfs", entity_class=DocumentoPDF)
+    """Inyecta servicio PDF con repo Mongo."""
+    repository = MongoRepository(
+        db=db, collection_name="pdfs", entity_class=DocumentoPDF
+    )
     return PdfService(repository)
 
 
@@ -28,37 +30,40 @@ async def registrar_pdf(
     file: UploadFile = File(...),
     service: PdfService = Depends(get_pdf_service),
 ):
-    """Sube un archivo físico PDF, valida su formato y lo envía al servicio para procesamiento en memoria."""
-    logger.info(f"Recibiendo solicitud para registrar PDF: {file.filename}")
+    """Sube PDF, lo valida y lo manda a procesar."""
+    logger.info(f"Recibiendo PDF: {file.filename}")
 
     if file.content_type != "application/pdf":
         logger.warning(
-            f"Rechazado: El archivo '{file.filename}' no es un PDF válido (Tipo: {file.content_type})."
+            f"Rechazado: '{file.filename}' no es PDF (tipo: {file.content_type})"
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El archivo debe ser un documento PDF válido.",
+            detail="El archivo debe ser un PDF válido.",
         )
 
     documento_guardado = await service.procesar_y_guardar(file)
-    logger.info(f"PDF '{file.filename}' procesado y guardado correctamente.")
-    return {"mensaje": "✅ PDF procesado y guardado con éxito", "datos": documento_guardado}
+    logger.info(f"PDF '{file.filename}' procesado y guardado OK")
+    return {
+        "mensaje": "✅ PDF procesado y guardado con éxito",
+        "datos": documento_guardado,
+    }
 
 
 @router.get("/", response_model=list[PDFDocumentResponse])
 async def listar_pdfs(service: PdfService = Depends(get_pdf_service)):
-    """Devuelve una lista con todos los documentos PDF procesados."""
-    logger.debug("Solicitando la lista de todos los PDFs.")
+    """Lista todos los PDFs procesados."""
+    logger.debug("Pidiendo lista de PDFs")
     return await service.get_all()
 
 
 @router.get("/{pdf_id}", response_model=PDFDocumentResponse)
 async def obtener_pdf(pdf_id: str, service: PdfService = Depends(get_pdf_service)):
-    """Busca y devuelve los detalles de un solo PDF mediante su ID."""
-    logger.debug(f"Buscando PDF con ID: {pdf_id}")
+    """Busca un PDF por ID."""
+    logger.debug(f"Buscando PDF id: {pdf_id}")
     pdf = await service.get_by_id(pdf_id)
     if not pdf:
-        logger.warning(f"PDF no encontrado al buscar ID: {pdf_id}")
+        logger.warning(f"PDF no encontrado: {pdf_id}")
         raise HTTPException(status_code=404, detail="Documento PDF no encontrado.")
     return pdf
 
@@ -69,23 +74,23 @@ async def actualizar_pdf(
     datos: PDFUpdate,
     service: PdfService = Depends(get_pdf_service),
 ):
-    """Actualiza los datos editables de un documento PDF ya persistido."""
-    logger.info(f"Solicitud para actualizar PDF con ID: {pdf_id}")
+    """Renombra un PDF y actualiza fecha."""
+    logger.info(f"Actualizando PDF id: {pdf_id}")
     documento = await service.renombrar(pdf_id, datos.nombre_pdf)
-    logger.info(f"PDF con ID {pdf_id} actualizado exitosamente.")
+    logger.info(f"PDF {pdf_id} actualizado OK")
     return documento
 
 
 @router.delete("/{pdf_id}", response_model=MensajeResponse)
 async def borrar_pdf(pdf_id: str, service: PdfService = Depends(get_pdf_service)):
-    """Elimina un PDF de la base de datos de forma permanente."""
-    logger.info(f"Solicitud para eliminar PDF con ID: {pdf_id}")
+    """Borra un PDF."""
+    logger.info(f"Eliminando PDF id: {pdf_id}")
     exito = await service.delete(pdf_id)
     if not exito:
-        logger.warning(f"Fallo al eliminar: PDF con ID {pdf_id} no encontrado.")
+        logger.warning(f"Fallo al borrar: PDF {pdf_id} no existe")
         raise HTTPException(
             status_code=404, detail="Documento PDF no encontrado o ya fue eliminado."
         )
 
-    logger.info(f"PDF con ID {pdf_id} eliminado exitosamente.")
+    logger.info(f"PDF {pdf_id} eliminado OK")
     return {"mensaje": "✅ Documento PDF eliminado con éxito."}

@@ -1,4 +1,4 @@
-"""Fixtures compartidas para los tests."""
+"""Fixtures compartidas para tests."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,11 +12,7 @@ TEXTO_PDF_PRUEBA = "Hola mundo desde un PDF de prueba."
 
 
 def build_minimal_pdf(texto: str = TEXTO_PDF_PRUEBA) -> bytes:
-    """
-    Construye, a mano y con offsets exactos, un PDF mínimo válido con texto
-    extraíble por pypdf. No depende de ninguna librería de generación de PDFs
-    (no hay reportlab/fpdf instalados en el proyecto).
-    """
+    """Crea PDF mínimo en memoria con texto extraíble por pypdf (sin librerías extra)."""
     contenido_stream = f"BT /F1 18 Tf 20 150 Td ({texto}) Tj ET".encode("latin-1")
 
     objetos = [
@@ -25,7 +21,8 @@ def build_minimal_pdf(texto: str = TEXTO_PDF_PRUEBA) -> bytes:
         b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] "
         b"/Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        b"<< /Length %d >>\nstream\n%s\nendstream" % (len(contenido_stream), contenido_stream),
+        b"<< /Length %d >>\nstream\n%s\nendstream"
+        % (len(contenido_stream), contenido_stream),
     ]
 
     buffer = bytearray(b"%PDF-1.4\n")
@@ -52,13 +49,13 @@ def build_minimal_pdf(texto: str = TEXTO_PDF_PRUEBA) -> bytes:
 
 @pytest.fixture
 def pdf_service_fake() -> PdfService:
-    """PdfService respaldado por un repositorio en memoria (sin MongoDB real)."""
+    """PdfService con repo en memoria (sin MongoDB real)."""
     return PdfService(InMemoryRepository())
 
 
 @pytest.fixture
 def client(pdf_service_fake: PdfService):
-    """TestClient con el repositorio de Mongo reemplazado por uno en memoria."""
+    """TestClient con repo Mongo reemplazado por en memoria."""
     app.dependency_overrides[get_pdf_service] = lambda: pdf_service_fake
     with TestClient(app) as test_client:
         yield test_client
