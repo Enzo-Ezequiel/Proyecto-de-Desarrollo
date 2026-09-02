@@ -205,8 +205,11 @@ app/
         └── middleware.py  # Limitador de tamaño
 
 config/
-├── .env.example          # Plantilla de entorno (local)
-└── .env.example.docker   # Plantilla de entorno (contenedores)
+└── .env.example          # Plantilla de entorno para desarrollo local
+
+docker/
+├── docker-compose.yml    # App + MongoDB con volumen nombrado
+└── .env.example          # Plantilla de entorno para contenedores
 
 tests/
 ├── conftest.py           # Fixtures: PDF de prueba y repositorio en memoria

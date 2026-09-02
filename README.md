@@ -247,8 +247,7 @@ app/
     └── middleware/
 
 config/
-├── .env.example
-└── .env.example.docker
+└── .env.example           # Plantilla de variables para desarrollo local (copiar a .env)
 
 docker/
 ├── docker-compose.yml     # App + MongoDB con volumen nombrado mongo_data
