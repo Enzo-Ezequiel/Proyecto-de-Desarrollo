@@ -37,7 +37,3 @@ class BaseService(Generic[T]):
     async def delete(self, entity_id: str) -> bool:
         """Elimina entidad por ID."""
         return await self._repository.delete(entity_id)
-
-    async def count(self) -> int:
-        """Cuenta entidades totales."""
-        return await self._repository.count()

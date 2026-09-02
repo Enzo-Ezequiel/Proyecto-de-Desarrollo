@@ -33,10 +33,6 @@ class Repository(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def count(self) -> int:
-        pass
-
-    @abstractmethod
     async def find_one(self, filters: dict[str, Any]) -> T | None:
         """Busca primera entidad que coincida exactamente con filters."""
         pass
@@ -67,9 +63,6 @@ class InMemoryRepository(Repository[T]):
             del self._data[entity_id]
             return True
         return False
-
-    async def count(self) -> int:
-        return len(self._data)
 
     async def find_one(self, filters: dict[str, Any]) -> T | None:
         for entity in self._data.values():

@@ -31,10 +31,3 @@ class DuplicateResourceException(AppException):
     def __init__(self, resource: str, identifier: str) -> None:
         message = f"{resource} con {identifier} ya existe"
         super().__init__(message, "DUPLICATE_RESOURCE")
-
-
-class BusinessLogicException(AppException):
-    """Regla de negocio violada."""
-
-    def __init__(self, message: str) -> None:
-        super().__init__(message, "BUSINESS_LOGIC_ERROR")
