@@ -46,9 +46,6 @@ class MongoRepository(Repository[T], Generic[T]):
         result = await self.collection.delete_one({"_id": entity_id})
         return result.deleted_count > 0
 
-    async def count(self) -> int:
-        return await self.collection.count_documents({})
-
     async def find_one(self, filters: dict) -> T | None:
         document = await self.collection.find_one(filters)
         if document:
