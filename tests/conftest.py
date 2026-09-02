@@ -57,6 +57,27 @@ def build_minimal_pdf(texto: str = TEXTO_PDF_PRUEBA) -> bytes:
     return bytes(buffer)
 
 
+def subir_pdf(
+    client: TestClient,
+    contenido: bytes | None = None,
+    nombre: str = "documento.pdf",
+) -> dict:
+    """Sube un PDF y devuelve el documento creado (`datos` de la respuesta).
+
+    Atajo para los tests donde la subida es solo preparación (obtener por id,
+    renombrar, borrar). Los tests que verifican la subida en sí —PDF válido,
+    duplicado, tamaño máximo— hacen el POST explícito.
+    """
+    if contenido is None:
+        contenido = build_minimal_pdf()
+    respuesta = client.post(
+        "/api/v1/pdfs/",
+        files={"file": (nombre, contenido, "application/pdf")},
+    )
+    assert respuesta.status_code == 201
+    return respuesta.json()["datos"]
+
+
 @pytest.fixture
 def pdf_service_fake() -> PdfService:
     """PdfService con repo en memoria (sin MongoDB real)."""

@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from app.core.exceptions import DuplicateResourceException
 from app.core.repository import InMemoryRepository
 from app.services.pdf_service import PdfService
-from tests.conftest import TEXTO_PDF_PRUEBA, build_minimal_pdf
+from tests.conftest import TEXTO_PDF_PRUEBA, build_minimal_pdf, subir_pdf
 
 
 @pytest.mark.integration
@@ -99,10 +99,9 @@ def test_registrar_pdf_excede_tamano_maximo(client):
 
 
 @pytest.mark.integration
-def test_obtener_pdf_por_id_existente(client, pdf_valido_bytes):
+def test_obtener_pdf_por_id_existente(client):
     """GET /pdfs/{id} devuelve documento correcto cuando existe."""
-    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
-    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+    creado = subir_pdf(client)
 
     response = client.get(f"/api/v1/pdfs/{creado['id']}")
 
@@ -119,10 +118,9 @@ def test_obtener_pdf_por_id_inexistente(client):
 
 
 @pytest.mark.integration
-def test_actualizar_nombre_pdf_existente(client, pdf_valido_bytes):
+def test_actualizar_nombre_pdf_existente(client):
     """PATCH /pdfs/{id} renombra documento y refresca updated_at."""
-    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
-    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+    creado = subir_pdf(client)
 
     response = client.patch(
         f"/api/v1/pdfs/{creado['id']}", json={"nombre_pdf": "renombrado.pdf"}
@@ -151,10 +149,9 @@ def test_actualizar_pdf_inexistente(client):
 
 
 @pytest.mark.integration
-def test_actualizar_pdf_con_nombre_vacio_es_rechazado(client, pdf_valido_bytes):
+def test_actualizar_pdf_con_nombre_vacio_es_rechazado(client):
     """PATCH valida body con Pydantic y rechaza nombre vacío (422)."""
-    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
-    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+    creado = subir_pdf(client)
 
     response = client.patch(f"/api/v1/pdfs/{creado['id']}", json={"nombre_pdf": ""})
 
@@ -162,12 +159,9 @@ def test_actualizar_pdf_con_nombre_vacio_es_rechazado(client, pdf_valido_bytes):
 
 
 @pytest.mark.integration
-def test_actualizar_pdf_con_nombre_de_255_caracteres_es_aceptado(
-    client, pdf_valido_bytes
-):
+def test_actualizar_pdf_con_nombre_de_255_caracteres_es_aceptado(client):
     """Nombre de exactamente 255 caracteres respeta max_length de PDFUpdate (200)."""
-    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
-    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+    creado = subir_pdf(client)
 
     response = client.patch(
         f"/api/v1/pdfs/{creado['id']}", json={"nombre_pdf": "a" * 255}
@@ -178,12 +172,9 @@ def test_actualizar_pdf_con_nombre_de_255_caracteres_es_aceptado(
 
 
 @pytest.mark.integration
-def test_actualizar_pdf_con_nombre_de_256_caracteres_es_rechazado(
-    client, pdf_valido_bytes
-):
+def test_actualizar_pdf_con_nombre_de_256_caracteres_es_rechazado(client):
     """Nombre de 256 caracteres excede max_length=255 de PDFUpdate (422)."""
-    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
-    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+    creado = subir_pdf(client)
 
     response = client.patch(
         f"/api/v1/pdfs/{creado['id']}", json={"nombre_pdf": "a" * 256}
@@ -193,10 +184,9 @@ def test_actualizar_pdf_con_nombre_de_256_caracteres_es_rechazado(
 
 
 @pytest.mark.integration
-def test_borrar_pdf_existente(client, pdf_valido_bytes):
+def test_borrar_pdf_existente(client):
     """DELETE /pdfs/{id} elimina y GET posterior devuelve 404."""
-    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
-    creado = client.post("/api/v1/pdfs/", files=archivo).json()["datos"]
+    creado = subir_pdf(client)
 
     borrado = client.delete(f"/api/v1/pdfs/{creado['id']}")
     assert borrado.status_code == 200
