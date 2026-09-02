@@ -1,12 +1,22 @@
 """Fixtures compartidas para tests."""
 
-import pytest
-from fastapi.testclient import TestClient
+import os
 
-from app.controllers.pdf_routes import get_pdf_service
-from app.core.repository import InMemoryRepository
-from app.main import app
-from app.services.pdf_service import PdfService
+# Tests herméticos: la suite debe correr sin .env. Settings (app/core/config.py)
+# exige MONGO_DB_NAME y DATABASE_URL sin default y se instancia al importar la app,
+# así que las fijamos acá con valores de test ANTES de cualquier import de app.*.
+# Ningún test se conecta a Mongo (usan InMemoryRepository vía dependency_overrides):
+# la URL apunta a un host inexistente a propósito.
+os.environ.setdefault("MONGO_DB_NAME", "test_db")
+os.environ.setdefault("DATABASE_URL", "mongodb://nonexistent-test-host:27017")
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+
+from app.controllers.pdf_routes import get_pdf_service  # noqa: E402
+from app.core.repository import InMemoryRepository  # noqa: E402
+from app.main import app  # noqa: E402
+from app.services.pdf_service import PdfService  # noqa: E402
 
 TEXTO_PDF_PRUEBA = "Hola mundo desde un PDF de prueba."
 
