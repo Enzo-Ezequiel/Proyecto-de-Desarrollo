@@ -139,6 +139,7 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --strict-markers --tb=short"
+asyncio_mode = "strict"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
@@ -165,5 +166,6 @@ exclude_lines = [
 
 [dependency-groups]
 dev = [
+    "pytest-asyncio>=1.4.0",
     "ruff>=0.16.5",
 ]
