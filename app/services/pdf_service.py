@@ -29,6 +29,7 @@ class PdfService(BaseService[DocumentoPDF]):
 
     async def procesar_y_guardar(self, file: UploadFile) -> DocumentoPDF:
         """Valida archivo, verifica duplicados y guarda."""
+        self._validar_formato(file)
         contenido_bytes = await file.read()
 
         self._validar_tamano(contenido_bytes)
@@ -53,6 +54,14 @@ class PdfService(BaseService[DocumentoPDF]):
         documento.nombre_pdf = nuevo_nombre
         documento.update_timestamp()
         return await self.update(documento)
+
+    def _validar_formato(self, file: UploadFile) -> None:
+        """Rechaza archivos cuyo content-type no sea application/pdf (-> 400).
+
+        Qué formatos acepta el negocio es una regla de dominio, no de la capa HTTP.
+        """
+        if file.content_type != "application/pdf":
+            raise ValidationException("El archivo debe ser un PDF válido.")
 
     def _validar_tamano(self, contenido_bytes: bytes) -> None:
         """Valida el tamaño real del PDF ya leído; lanza ValidationException (-> 400).
