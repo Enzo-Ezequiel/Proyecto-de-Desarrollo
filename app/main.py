@@ -21,6 +21,7 @@ _ERROR_CODE_TO_STATUS = {
     "RESOURCE_NOT_FOUND": 404,
 }
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Inicio
@@ -28,6 +29,7 @@ async def lifespan(app: FastAPI):
     yield
     # Cierre
     await close_mongo_connection()
+
 
 app = FastAPI(
     title=settings.app_name,
@@ -48,8 +50,7 @@ app.add_middleware(
 
 # 12-Factor App: Usamos la configuración de tu .env en lugar de un número hardcodeado
 app.add_middleware(
-    FileSizeLimitMiddleware,
-    max_size_bytes=settings.pdf_max_size_mb * 1024 * 1024
+    FileSizeLimitMiddleware, max_size_bytes=settings.pdf_max_size_mb * 1024 * 1024
 )
 
 
