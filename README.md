@@ -304,6 +304,23 @@ Solicitud HTTP
 - Endpoints HTTP y validación Pydantic
 - Sin lógica de negocio
 
+### Convención de nombres: idioma por capa
+
+El código mezcla idiomas de forma deliberada, no por descuido:
+
+- **Infraestructura y contratos genéricos en inglés** — `BaseEntity`, `Repository`,
+  `BaseService` y sus métodos (`add`, `get_by_id`, `get_all`, `update`, `delete`,
+  `find_one`, `create`). Es vocabulario técnico estándar, reutilizable entre
+  proyectos y alineado con las convenciones de FastAPI, Motor y la stdlib.
+- **Dominio en español** — `DocumentoPDF`, `PdfService.procesar_y_guardar`,
+  `renombrar`, `nombre_pdf`, `contenido_pdf`, `checksum`. El lenguaje del negocio es
+  el del equipo y el de la cátedra; traducirlo agregaría una capa de mapeo mental
+  sin valor.
+
+Regla práctica: si el símbolo podría vivir igual en otro proyecto, va en inglés; si
+solo tiene sentido hablando de este dominio (PDFs), va en español. Dentro de cada
+capa el idioma es consistente.
+
 ---
 
 ## Estrategia de testing

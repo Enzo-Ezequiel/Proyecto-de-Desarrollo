@@ -10,6 +10,7 @@ package "Capa 1: Modelos (app/models/)" {
         + id: str
         + created_at: datetime
         + updated_at: datetime
+        + update_timestamp()
     }
 
     class DocumentoPDF {
@@ -25,62 +26,76 @@ package "Capa 1: Modelos (app/models/)" {
 package "Capa Core / Base de Datos (app/core/)" {
     interface Repository<T> {
         + add(entity: T): T
-        + get_by_id(id: str): T
-        + get_all(): List[T]
+        + get_by_id(entity_id: str): T | None
+        + get_all(): list[T]
         + update(entity: T): T
-        + delete(id: str): bool
-        + count(): int
+        + delete(entity_id: str): bool
+        + find_one(filters: dict): T | None
     }
 
     class MongoRepository<T> {
-        - db: AsyncIOMotorDatabase
-        - collection_name: str
-        - entity_class: Type[T]
+        - collection: AsyncIOMotorCollection
+        - entity_class: type[T]
         + __init__(db, collection_name, entity_class)
         + add(entity: T): T
-        + get_by_id(entity_id: str): T
-        + get_all(): List[T]
+        + get_by_id(entity_id: str): T | None
+        + get_all(): list[T]
         + update(entity: T): T
         + delete(entity_id: str): bool
-        + count(): int
+        + find_one(filters: dict): T | None
+        - _to_document(entity: T): dict
+        - _to_entity(document: dict): T
+    }
+
+    class InMemoryRepository<T> {
+        - _data: dict[str, T]
+        + add / get_by_id / get_all / update / delete / find_one
     }
 
     MongoRepository -up-|> Repository : Implementa
+    InMemoryRepository -up-|> Repository : Implementa (doble de test)
 }
 
 package "Capa 2: Servicios (app/services/)" {
-    class "pdf_service" as PDFService << (M, #FF7700) Module >> {
-        + procesar_y_guardar_pdf(file: UploadFile)
-        + obtener_todos_los_pdfs()
-        + obtener_pdf_por_id(pdf_id: str)
-        + eliminar_pdf(pdf_id: str)
+    class BaseService<T> {
+        - _repository: Repository<T>
+        + __init__(repository: Repository<T>)
+        + create(entity: T): T
+        + get_by_id(entity_id: str): T | None
+        + get_all(): list[T]
+        + update(entity: T): T
+        + delete(entity_id: str): bool
     }
+
+    class PdfService {
+        + __init__(repository: Repository<DocumentoPDF>)
+        + procesar_y_guardar(file: UploadFile): DocumentoPDF
+        + renombrar(pdf_id: str, nuevo_nombre: str): DocumentoPDF
+        - _validar_tamano(contenido_bytes: bytes)
+        - _validar_no_duplicado(checksum: str)
+        - _extraer_texto(contenido_bytes: bytes): str
+    }
+
+    PdfService -up-|> BaseService : Hereda de
 }
 
 package "Capa 3: Controladores (app/controllers/)" {
     class "pdf_routes" as PDFRoutes << (M, #FF7700) Module >> {
+        + get_pdf_service(db): PdfService
         + registrar_pdf(file: UploadFile)
         + listar_pdfs()
         + obtener_pdf(pdf_id: str)
+        + actualizar_pdf(pdf_id: str, datos: PDFUpdate)
         + borrar_pdf(pdf_id: str)
     }
 }
 
-package "Frontend (Streamlit)" {
-    class "frontend.py" as Frontend << (M, #FF7700) Module >> {
-        + UI_Subir_Documento
-        + UI_Listar_Documentos
-        + UI_Eliminar_Documento
-    }
-}
-
 ' --- Relaciones y Flujo Unidireccional ---
-Frontend ..> PDFRoutes : HTTP Requests (requests)
+PDFRoutes ..> PdfService : instancia e inyecta (get_pdf_service)
+PDFRoutes ..> MongoRepository : instancia el adaptador concreto
 
-PDFRoutes ..> PDFService : Delega la lógica
+BaseService o--> Repository : _repository (abstracción, DIP)
+PdfService ..> DocumentoPDF : crea instancia
 
-PDFService ..> MongoRepository : Instancia y usa
-PDFService ..> DocumentoPDF : Crea instancia
-
-MongoRepository ..> DocumentoPDF : Persiste en BD
+MongoRepository ..> DocumentoPDF : persiste en BD
 @enduml
