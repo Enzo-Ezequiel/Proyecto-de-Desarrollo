@@ -91,7 +91,7 @@ La API estará disponible en:
 uv run pytest tests/ -v
 ```
 
-Los 10 tests de `tests/test_pdfs.py` usan un repositorio en memoria (`InMemoryRepository`) inyectado vía `app.dependency_overrides`, así que corren solos, sin necesitar el paso 5 (Mongo levantada). Es el primer chequeo antes de probar contra la app real.
+Los 17 tests de `tests/test_pdfs.py` usan un repositorio en memoria (`InMemoryRepository`) inyectado vía `app.dependency_overrides`, así que corren solos, sin necesitar el paso 5 (Mongo levantada). Es el primer chequeo antes de probar contra la app real. El detalle de qué se cubre y qué queda fuera a propósito está en [Estrategia de testing](#estrategia-de-testing).
 
 ### 8. Probar el flujo completo contra la app real (verificación manual)
 
@@ -303,6 +303,95 @@ Solicitud HTTP
 - Ubicación: `app/controllers/`
 - Endpoints HTTP y validación Pydantic
 - Sin lógica de negocio
+
+---
+
+## Estrategia de testing
+
+La suite (`tests/test_pdfs.py`, 17 tests) entra al sistema por dos *seams* —
+dos puntos de sustitución donde el test reemplaza una pieza real por otra.
+
+### Qué se testea y en qué nivel
+
+| Seam | Nivel | Tests | Cómo entra el test |
+|---|---|---|---|
+| **HTTP** | Integración capa 1 + capa 2 (controller + schemas + service) | 16 | `TestClient` de FastAPI contra la API real: rutas, status codes, validación Pydantic, flujo `controller → service → repository` |
+| **Servicio** | Unitario | 1 (`test_pdf_service_unitario_sin_mongo`) | Instancia directa de `PdfService` con `InMemoryRepository`, sin HTTP, aislando las reglas de negocio (extracción de texto, rechazo de duplicados) |
+
+### Sustitución por inversión de dependencias, no por mocks
+
+El doble de test es `InMemoryRepository` (`app/core/repository.py`), una
+implementación real del puerto abstracto `Repository[T]` — no un mock. Se inyecta
+por el **mismo mecanismo que usa producción**:
+
+- En los tests HTTP, `conftest.py` registra
+  `app.dependency_overrides[get_pdf_service]` con un `PdfService` cableado a
+  `InMemoryRepository`. FastAPI resuelve la dependencia igual que en producción;
+  lo único que cambia es qué implementación del puerto recibe el service.
+- En el test unitario, el repositorio se pasa por constructor:
+  `PdfService(InMemoryRepository())`.
+
+No se parchea ningún atributo privado ni se intercepta ningún internal. Es
+inversión de dependencias real: el `type hint` apunta a la abstracción
+(`repository: Repository[T]`) y el cableado concreto vive en un solo lugar.
+
+### Las cuatro premisas
+
+- **Rápidas** — la suite completa corre en fracciones de segundo (~0,3 s). Sin
+  red y sin BD real: `conftest.py` fija `DATABASE_URL` a un host inexistente a
+  propósito y ningún test abre una conexión.
+- **Atómicas** — un comportamiento por test: un status code, una regla de
+  validación o una transición de estado, no varios a la vez.
+- **Inocuas** — no tocan estado externo. El almacenamiento es un `dict` en
+  memoria que se descarta al terminar cada test.
+- **Independientes** — cada test recibe un `InMemoryRepository` nuevo vía
+  fixture; el orden de ejecución no altera el resultado.
+
+**Herméticas:** la suite corre sobre un clon limpio sin `.env`, sin Mongo
+levantada y sin configuración manual. Los settings se proveen desde
+`conftest.py` antes de importar `app.*`.
+
+### Qué queda fuera, a propósito
+
+`MongoRepository` (`app/core/mongo_repository.py`) **no se ejercita** en la suite
+automatizada: su coverage es ~36% y corresponde solo a las firmas de los
+métodos, no a su lógica.
+
+Es una decisión deliberada, no un olvido:
+
+- `MongoRepository` es un adaptador delgado sobre Motor: traduce entre entidades
+  del dominio y documentos de Mongo y delega en el driver. No contiene reglas de
+  negocio propias.
+- Cubrirlo exigiría una MongoDB real durante los tests, lo que rompería la
+  hermeticidad recién conseguida: la suite dejaría de correr sobre un clon limpio
+  sin infraestructura.
+- El contrato que `MongoRepository` debe cumplir ya está definido por el puerto
+  `Repository[T]` y verificado contra `InMemoryRepository`; ambas
+  implementaciones son intercambiables (LSP).
+
+Si la lógica de conversión del adaptador creciera lo suficiente como para
+justificar la cobertura, se cubriría con un **test de integración** contra un
+contenedor `mongo:7.0`, marcado `@pytest.mark.integration` y excluido de la
+corrida unitaria por defecto. La verificación manual de punta a punta contra
+Mongo real ya está en el [paso 8](#8-probar-el-flujo-completo-contra-la-app-real-verificación-manual)
+del inicio rápido.
+
+### Cómo correr la suite y el coverage
+
+```powershell
+# Suite completa — no necesita Mongo ni .env
+uv run pytest tests/ -v
+
+# Comprobar hermeticidad: la suite pasa aunque no exista .env
+Rename-Item .env .env.bak ; uv run pytest tests/ ; Rename-Item .env.bak .env
+
+# Coverage — requiere las dependencias de desarrollo
+uv sync --extra dev
+uv run pytest tests/ --cov=app --cov-report=term-missing
+```
+
+Coverage actual: **86% global**, con `mongo_repository.py` como única exclusión
+relevante (ver arriba).
 
 ---
 
