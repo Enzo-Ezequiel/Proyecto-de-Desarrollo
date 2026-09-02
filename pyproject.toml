@@ -9,7 +9,12 @@ description = "Professional three-layer architecture FastAPI application with Cl
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-    {name = "Development Team", email = "dev@example.com"}
+    {name = "Albarracín Valentina"},
+    {name = "Buttini Ezequiel"},
+    {name = "Cano Matías"},
+    {name = "Gomez Manuel"},
+    {name = "Pérez Buttini Nicolás"},
+    {name = "Peñasco Valentina"},
 ]
 license = {text = "MIT"}
 keywords = ["fastapi", "clean-code", "architecture", "mvc"]
@@ -53,10 +58,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/repositoriodesarrollo"
-Documentation = "https://github.com/yourusername/repositoriodesarrollo/tree/main/docs"
-Repository = "https://github.com/yourusername/repositoriodesarrollo.git"
-"Bug Tracker" = "https://github.com/yourusername/repositoriodesarrollo/issues"
+Homepage = "https://github.com/Enzo-Ezequiel/Proyecto-de-Desarrollo"
+Documentation = "https://github.com/Enzo-Ezequiel/Proyecto-de-Desarrollo/tree/main/docs"
+Repository = "https://github.com/Enzo-Ezequiel/Proyecto-de-Desarrollo.git"
+"Bug Tracker" = "https://github.com/Enzo-Ezequiel/Proyecto-de-Desarrollo/issues"
 
 [tool.setuptools]
 packages = ["app", "tests"]
@@ -155,6 +160,7 @@ omit = [
 ]
 
 [tool.coverage.report]
+fail_under = 85
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
