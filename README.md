@@ -16,7 +16,7 @@ Aplicación FastAPI con arquitectura de tres capas siguiendo principios de Clean
 - [uv](https://docs.astral.sh/uv/) - Gestor de paquetes y entornos virtuales
 - Git
 - Visual Studio Code (recomendado)
-- Docker Desktop - Para MongoDB
+- Docker Desktop — Para MongoDB en desarrollo local, o para levantar el proyecto completo en contenedores
 
 ## Inicio rápido para desarollo 
 
@@ -61,14 +61,15 @@ Abre VS Code desde la carpeta del proyecto escribiendo code . en la terminal. El
 cp config/.env.example .env
 ```
 
-### 5. Iniciar MongoDB (Docker)
+### 5. Iniciar MongoDB
 
-Para desarrollar localmente, solo necesitamos levantar la base de datos simulando "la nube":
+El desarrollo local necesita una instancia de MongoDB corriendo. Si no tenés una, levantá un contenedor:
 
 ```powershell
-# Abre una terminal en la carpeta `dockerMongo` (fuera del proyecto principal) y ejecuta:
-docker-compose up -d
+docker run -d --name mongo_dev -p 27017:27017 -v mongo_dev_data:/data/db mongo:7.0
 ```
+
+Con `DATABASE_URL="mongodb://127.0.0.1:27017"` en tu `.env` (paso 4), la app se conecta ahí. Si preferís no instalar nada localmente, usá el stack Docker completo (ver [Inicio rápido con Docker](#inicio-rápido-con-docker)), que ya incluye la base.
 
 ### 6. Ejecutar la aplicación
 
@@ -157,9 +158,9 @@ Si los siete pasos dan el código esperado, el CRUD completo, la validación de 
 
 ---
 
-## Inicio rapido para ejecucion
+## Inicio rápido con Docker
 
-Para ejecutar este proyecto, ofrecemos dos alternativas: una ejecución rápida 100% en contenedores (ideal para evaluación) y una configuración local completa para desarrollo continuo. Esta opción despliega tanto la aplicación web como la base de datos MongoDB en contenedores aislados, sin necesidad de instalar dependencias ni configurar entornos virtuales en tu máquina local.
+El `docker-compose.yml` de la carpeta `docker/` levanta el proyecto completo desde un clon limpio: la aplicación FastAPI y una instancia de MongoDB con persistencia. No hace falta instalar Python, `uv` ni configurar entornos virtuales en la máquina.
 
 ### 1. Clonar el repositorio
 
@@ -170,31 +171,62 @@ cd Proyecto-de-Desarrollo
 
 ### 2. Configurar variables de entorno
 
+Copiar la plantilla a `docker/.env` y ajustar lo que haga falta:
+
 ```powershell
-cp config/.env.example.docker docker/.env
+cp docker/.env.example docker/.env
 ```
 
-### 3. Construir y levantar todo el ecosistema
-Solo va a funcionar con docker desktop insatalado y abierto:
+`docker/.env` está ignorado por git; `docker/.env.example` es la plantilla versionada que exige 12-Factor. Compose lee `docker/.env` tanto para inyectar las variables dentro del contenedor (`env_file`) como para resolver `${APP_VERSION}` en el tag de la imagen.
+
+### 3. Construir y levantar todo
 
 ```powershell
-# Abre una terminal en la carpeta dockerMongo (fuera del proyecto principal) y ejecuta:
-docker-compose up -d
-# En la terminal de tu proyecto principal, navega hacia la carpeta docker y levanta la app:
 cd docker
-docker-compose up -d --build
+docker compose up -d --build
 ```
-### 4. Ejecutar tests
-Como el entorno es 100% Docker y no tienes dependencias locales, ejecuta los tests directamente dentro del contenedor de la aplicación:
+
+Se construye la imagen de la app y arrancan dos servicios: `mongo` (contenedor `mongo_db`) y `app` (contenedor `fastapi_app`), que espera a `mongo` vía `depends_on`.
+
+### 4. Ejecutar los tests dentro del contenedor
 
 ```powershell
 docker exec -it fastapi_app uv run pytest tests/ -v
 ```
 
 ### 5. Acceder a la API
+
 - API: http://127.0.0.1:8000
 - Documentación Swagger: http://127.0.0.1:8000/docs
 - Documentación ReDoc: http://127.0.0.1:8000/redoc
+
+### 6. Detener el stack y persistencia de datos
+
+```powershell
+docker compose down      # detiene y elimina los contenedores; los datos de Mongo se conservan
+docker compose down -v   # además elimina el volumen mongo_data: borra todos los datos
+```
+
+Los datos de MongoDB viven en el volumen nombrado `mongo_data`, no en la capa escribible del contenedor. Por eso sobreviven a `docker compose down`, a `docker rm` y a reconstrucciones de la imagen. La única forma de borrarlos es `docker compose down -v` (o `docker volume rm` sobre el volumen).
+
+### Variables de entorno
+
+Todas se definen en `docker/.env` (plantilla en `docker/.env.example`):
+
+| Variable | Para qué sirve | Valor en Docker |
+|---|---|---|
+| `MONGO_DB_NAME` | Nombre de la base que usa la app. **Obligatoria**, sin default. | `repositorio_db` |
+| `DATABASE_URL` | URI de conexión a MongoDB. **Obligatoria**, sin default. Dentro del compose apunta al servicio `mongo`. | `mongodb://mongo:27017` |
+| `APP_NAME` | Nombre que la API expone en su metadata y usa el logger. | `Repositorio Desarrollo` |
+| `APP_VERSION` | Versión de la API; Compose la usa además como tag de la imagen (`repositoriodesarrollo:<version>`). | `0.1.0` |
+| `DEBUG` | Modo debug de la aplicación. | `False` |
+| `HOST` | Interfaz donde escucha Uvicorn dentro del contenedor. | `0.0.0.0` |
+| `PORT` | Puerto interno de la app (se mapea a `8000` del host). | `8000` |
+| `CORS_ORIGINS` | Lista JSON de orígenes permitidos por CORS. | `["http://localhost", "http://localhost:3000", "http://localhost:8000"]` |
+| `PDF_MAX_SIZE_MB` | Tamaño máximo al subir un PDF; si se supera, la API responde `413`. | `5` |
+| `LOG_LEVEL` | Nivel del logger de la app (`DEBUG`, `INFO`, `WARNING`, ...). | `INFO` |
+
+> **Stack de MongoDB separado.** Existe además un stack de MongoDB independiente, fuera de este repositorio, pensado para cuando el sistema se divida en microservicios y varios servicios compartan la misma base. En la etapa actual, monolítica, el `docker-compose.yml` de este repositorio es autocontenido y no depende de ese stack.
 
 ---
 
@@ -215,8 +247,11 @@ app/
     └── middleware/
 
 config/
-├── .env.example
-└── .env.example.docker
+└── .env.example           # Plantilla de variables para desarrollo local (copiar a .env)
+
+docker/
+├── docker-compose.yml     # App + MongoDB con volumen nombrado mongo_data
+└── .env.example           # Plantilla de variables (copiar a docker/.env)
 
 tests/                     # Suite de pruebas
 
@@ -277,8 +312,7 @@ Consulta `/docs` para referencias completas:
 
 - **Índice:** [INDEX.md](docs/INDEX.md)
 - **Guía Completa:** [GUIA_COMPLETA.md](docs/GUIA_COMPLETA.md)
-- **Dependencias:** [BIBLIOTECAS.md](docs/BIBLIOTECAS.md)
-- **Análisis de Código:** [VERIFICACION_CLEAN_CODE.md](docs/VERIFICACION_CLEAN_CODE.md)
+- **Dependencias:** [bibliotecas.md](docs/bibliotecas.md)
 
 ---
 

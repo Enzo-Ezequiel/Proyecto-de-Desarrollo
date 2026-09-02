@@ -3,7 +3,7 @@
 from typing import Generic, TypeVar
 
 from app.core.exceptions import ResourceNotFoundException
-from app.core.repository import InMemoryRepository, Repository
+from app.core.repository import Repository
 
 T = TypeVar("T")
 
@@ -11,9 +11,9 @@ T = TypeVar("T")
 class BaseService(Generic[T]):
     """CRUD genérico asíncrono. Tipo T = entidad que maneja el servicio."""
 
-    def __init__(self, repository: Repository[T] | None = None) -> None:
-        """Inicializa con repo dado o InMemoryRepository por defecto."""
-        self._repository: Repository[T] = repository or InMemoryRepository[T]()
+    def __init__(self, repository: Repository[T]) -> None:
+        """Inicializa con el repositorio inyectado (obligatorio, sin default)."""
+        self._repository: Repository[T] = repository
 
     async def create(self, entity: T) -> T:
         """Crea entidad nueva."""
