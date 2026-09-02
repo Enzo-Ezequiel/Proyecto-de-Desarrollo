@@ -2,8 +2,9 @@ import io
 
 import pytest
 from fastapi import UploadFile
+from starlette.datastructures import Headers
 
-from app.core.exceptions import DuplicateResourceException
+from app.core.exceptions import DuplicateResourceException, ValidationException
 from app.core.repository import InMemoryRepository
 from app.services.pdf_service import PdfService
 from app.services.pdf_text_extractor import PdfTextExtractor
@@ -209,10 +210,31 @@ async def test_pdf_service_unitario_sin_mongo(pdf_valido_bytes):
     """Test unitario puro de PdfService (sin HTTP, sin Mongo): InMemoryRepo valida extracción y duplicados."""
     service = PdfService(InMemoryRepository(), PdfTextExtractor())
 
-    subida = UploadFile(file=io.BytesIO(pdf_valido_bytes), filename="a.pdf")
+    headers_pdf = Headers({"content-type": "application/pdf"})
+    subida = UploadFile(
+        file=io.BytesIO(pdf_valido_bytes), filename="a.pdf", headers=headers_pdf
+    )
     documento = await service.procesar_y_guardar(subida)
     assert TEXTO_PDF_PRUEBA in documento.contenido_pdf
 
-    subida_duplicada = UploadFile(file=io.BytesIO(pdf_valido_bytes), filename="a.pdf")
+    subida_duplicada = UploadFile(
+        file=io.BytesIO(pdf_valido_bytes), filename="a.pdf", headers=headers_pdf
+    )
     with pytest.raises(DuplicateResourceException):
         await service.procesar_y_guardar(subida_duplicada)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_pdf_service_rechaza_content_type_no_pdf(pdf_valido_bytes):
+    """La validación de formato vive en el dominio: el servicio rechaza un
+    content_type distinto de application/pdf con ValidationException."""
+    service = PdfService(InMemoryRepository(), PdfTextExtractor())
+
+    subida = UploadFile(
+        file=io.BytesIO(pdf_valido_bytes),
+        filename="a.pdf",
+        headers=Headers({"content-type": "application/octet-stream"}),
+    )
+    with pytest.raises(ValidationException):
+        await service.procesar_y_guardar(subida)

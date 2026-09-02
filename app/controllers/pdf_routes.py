@@ -31,17 +31,8 @@ async def registrar_pdf(
     file: UploadFile = File(...),
     service: PdfService = Depends(get_pdf_service),
 ):
-    """Sube PDF, lo valida y lo manda a procesar."""
+    """Sube PDF, lo manda a procesar."""
     logger.info(f"Recibiendo PDF: {file.filename}")
-
-    if file.content_type != "application/pdf":
-        logger.warning(
-            f"Rechazado: '{file.filename}' no es PDF (tipo: {file.content_type})"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El archivo debe ser un PDF válido.",
-        )
 
     documento_guardado = await service.procesar_y_guardar(file)
     logger.info(f"PDF '{file.filename}' procesado y guardado OK")
