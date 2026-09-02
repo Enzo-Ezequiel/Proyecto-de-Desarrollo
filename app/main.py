@@ -18,7 +18,6 @@ from app.core.middleware.middleware import FileSizeLimitMiddleware
 _ERROR_CODE_TO_STATUS = {
     "VALIDATION_ERROR": 400,
     "DUPLICATE_RESOURCE": 400,
-    "BUSINESS_LOGIC_ERROR": 400,
     "RESOURCE_NOT_FOUND": 404,
 }
 
