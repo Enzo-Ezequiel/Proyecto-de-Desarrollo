@@ -51,6 +51,14 @@ class PdfService(BaseService[DocumentoPDF]):
         return await self.update(documento)
 
     def _validar_tamano(self, contenido_bytes: bytes) -> None:
+        """Valida el tamaño real del PDF ya leído; lanza ValidationException (-> 400).
+
+        Segunda capa de la defensa en profundidad sobre el límite de tamaño.
+        FileSizeLimitMiddleware ya rechaza con 413 las peticiones cuyo header
+        Content-Length supera el límite, pero ese header puede faltar o ser falso;
+        acá se mide el contenido efectivo. El 400 (vs. el 413 del middleware) marca
+        que el cuerpo se recibió entero y es la regla de negocio la que lo rechaza.
+        """
         limite_mb = settings.pdf_max_size_mb
         if len(contenido_bytes) > (limite_mb * 1024 * 1024):
             raise ValidationException(

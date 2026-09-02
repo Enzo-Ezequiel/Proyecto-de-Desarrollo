@@ -7,7 +7,20 @@ from app.core.utils import logger
 
 
 class FileSizeLimitMiddleware:
-    """Rechaza peticiones con Content-Length mayor al límite."""
+    """Rechaza peticiones con Content-Length mayor al límite, sin leer el cuerpo.
+
+    Primera capa de una defensa en profundidad sobre el mismo límite de tamaño:
+
+    - Acá (capa HTTP): se mira solo el header ``Content-Length`` y se corta con
+      ``413`` antes de leer el body. Filtro barato y temprano contra subidas
+      grandes.
+    - En ``PdfService._validar_tamano`` (capa de negocio): se mide el tamaño real
+      del contenido ya leído y se responde ``400``. Hace falta porque el header
+      puede faltar o mentir, así que el middleware no alcanza como única barrera.
+
+    Los status difieren a propósito: ``413`` = "ni mandes esto"; ``400`` = "recibí
+    el archivo y no cumple la regla de negocio".
+    """
 
     def __init__(self, app: ASGIApp, max_size_bytes: int = 10 * 1024 * 1024) -> None:
         self.app = app
