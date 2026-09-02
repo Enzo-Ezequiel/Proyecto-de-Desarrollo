@@ -1,9 +1,7 @@
-"""Lógica de negocio para PDFs: validación, extracción de texto y guardado."""
+"""Lógica de negocio para PDFs: validación, deduplicado y persistencia."""
 
 import hashlib
-import io
 
-import pypdf
 from fastapi import UploadFile
 
 from app.core.config import settings
@@ -15,13 +13,19 @@ from app.core.exceptions import (
 from app.core.repository import Repository
 from app.models.pdf_document import DocumentoPDF
 from app.services.base_service import BaseService
+from app.services.pdf_text_extractor import PdfTextExtractor
 
 
 class PdfService(BaseService[DocumentoPDF]):
     """Servicio específico de PDFs. Lo común (CRUD) viene de BaseService."""
 
-    def __init__(self, repository: Repository[DocumentoPDF]) -> None:
+    def __init__(
+        self,
+        repository: Repository[DocumentoPDF],
+        text_extractor: PdfTextExtractor,
+    ) -> None:
         super().__init__(repository)
+        self._text_extractor = text_extractor
 
     async def procesar_y_guardar(self, file: UploadFile) -> DocumentoPDF:
         """Valida archivo, verifica duplicados y guarda."""
@@ -31,7 +35,7 @@ class PdfService(BaseService[DocumentoPDF]):
         checksum = hashlib.sha256(contenido_bytes).hexdigest()
         await self._validar_no_duplicado(checksum)
 
-        texto_extraido = self._extraer_texto(contenido_bytes)
+        texto_extraido = self._text_extractor.extraer_texto(contenido_bytes)
 
         nuevo_documento = DocumentoPDF(
             nombre_pdf=file.filename,
@@ -69,12 +73,3 @@ class PdfService(BaseService[DocumentoPDF]):
         duplicado = await self._repository.find_one({"checksum": checksum})
         if duplicado:
             raise DuplicateResourceException("Documento PDF", f"checksum {checksum}")
-
-    def _extraer_texto(self, contenido_bytes: bytes) -> str:
-        lector_pdf = pypdf.PdfReader(io.BytesIO(contenido_bytes))
-        texto_extraido = ""
-        for pagina in lector_pdf.pages:
-            texto = pagina.extract_text()
-            if texto:
-                texto_extraido += texto + "\n"
-        return texto_extraido.strip()

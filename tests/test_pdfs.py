@@ -6,6 +6,7 @@ from fastapi import UploadFile
 from app.core.exceptions import DuplicateResourceException
 from app.core.repository import InMemoryRepository
 from app.services.pdf_service import PdfService
+from app.services.pdf_text_extractor import PdfTextExtractor
 from tests.conftest import TEXTO_PDF_PRUEBA, build_minimal_pdf, subir_pdf
 
 
@@ -206,7 +207,7 @@ def test_borrar_pdf_inexistente(client):
 @pytest.mark.asyncio
 async def test_pdf_service_unitario_sin_mongo(pdf_valido_bytes):
     """Test unitario puro de PdfService (sin HTTP, sin Mongo): InMemoryRepo valida extracción y duplicados."""
-    service = PdfService(InMemoryRepository())
+    service = PdfService(InMemoryRepository(), PdfTextExtractor())
 
     subida = UploadFile(file=io.BytesIO(pdf_valido_bytes), filename="a.pdf")
     documento = await service.procesar_y_guardar(subida)
