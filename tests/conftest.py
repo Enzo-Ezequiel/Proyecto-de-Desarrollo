@@ -17,6 +17,7 @@ from app.controllers.pdf_routes import get_pdf_service  # noqa: E402
 from app.core.repository import InMemoryRepository  # noqa: E402
 from app.main import app  # noqa: E402
 from app.services.pdf_service import PdfService  # noqa: E402
+from app.services.pdf_text_extractor import PdfTextExtractor  # noqa: E402
 
 TEXTO_PDF_PRUEBA = "Hola mundo desde un PDF de prueba."
 
@@ -81,7 +82,7 @@ def subir_pdf(
 @pytest.fixture
 def pdf_service_fake() -> PdfService:
     """PdfService con repo en memoria (sin MongoDB real)."""
-    return PdfService(InMemoryRepository())
+    return PdfService(InMemoryRepository(), PdfTextExtractor())
 
 
 @pytest.fixture

@@ -13,16 +13,17 @@ from app.schemas.pdf_schemas import (
     PDFUploadResponse,
 )
 from app.services.pdf_service import PdfService
+from app.services.pdf_text_extractor import PdfTextExtractor
 
 router = APIRouter(prefix=f"{settings.api_prefix}/pdfs", tags=["Documentos PDF"])
 
 
 def get_pdf_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> PdfService:
-    """Inyecta servicio PDF con repo Mongo."""
+    """Inyecta servicio PDF con repo Mongo y extractor de texto."""
     repository = MongoRepository(
         db=db, collection_name="pdfs", entity_class=DocumentoPDF
     )
-    return PdfService(repository)
+    return PdfService(repository, PdfTextExtractor())
 
 
 @router.post("/", response_model=PDFUploadResponse, status_code=status.HTTP_201_CREATED)
