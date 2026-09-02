@@ -48,7 +48,7 @@ class MongoRepository(Repository[T], Generic[T]):
 
     def _to_document(self, entity: T) -> dict:
         """Entidad de dominio -> documento Mongo (id -> _id)."""
-        document = entity.__dict__.copy()
+        document = entity.to_dict()
         document["_id"] = document.pop("id")
         return document
 

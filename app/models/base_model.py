@@ -24,6 +24,16 @@ class BaseEntity:
         """Actualiza updated_at a ahora."""
         self.updated_at = datetime.now(timezone.utc)
 
+    def to_dict(self) -> dict:
+        """Devuelve los atributos de instancia como dict.
+
+        Incluye los de las subclases: `__dict__` es por instancia, así que una
+        `DocumentoPDF` trae también `nombre_pdf`, `contenido_pdf` y `checksum`.
+        La entidad decide qué expone; si algún campo necesitara transformarse al
+        serializar, se resuelve acá, en un solo lugar.
+        """
+        return self.__dict__.copy()
+
     def __eq__(self, other: object) -> bool:
         """Compara por ID."""
         if not isinstance(other, BaseEntity):
