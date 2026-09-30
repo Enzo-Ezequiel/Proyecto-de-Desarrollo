@@ -1,4 +1,12 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.core.config import settings
@@ -28,6 +36,7 @@ def get_pdf_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> PdfServ
 
 @router.post("/", response_model=PDFUploadResponse, status_code=status.HTTP_201_CREATED)
 async def registrar_pdf(
+    response: Response,
     file: UploadFile = File(...),
     service: PdfService = Depends(get_pdf_service),
 ):
@@ -36,6 +45,9 @@ async def registrar_pdf(
 
     documento_guardado = await service.procesar_y_guardar(file)
     logger.info(f"PDF '{file.filename}' procesado y guardado OK")
+    response.headers["X-Extraction-Time-Ms"] = (
+        f"{service.ultimo_tiempo_extraccion_ms:.3f}"
+    )
     return {
         "mensaje": "✅ PDF procesado y guardado con éxito",
         "datos": documento_guardado,

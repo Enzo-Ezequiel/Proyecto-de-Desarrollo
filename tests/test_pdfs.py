@@ -1,4 +1,5 @@
 import io
+import time
 
 import pytest
 from fastapi import UploadFile
@@ -73,6 +74,17 @@ def test_registrar_pdf_valido_extrae_texto(client, pdf_valido_bytes):
     assert datos["nombre_pdf"] == "documento.pdf"
     assert TEXTO_PDF_PRUEBA in datos["contenido_pdf"]
     assert len(datos["checksum"]) == 64  # sha256 hex
+
+
+@pytest.mark.integration
+def test_registrar_pdf_informa_tiempo_de_extraccion(client, pdf_valido_bytes):
+    """La subida expone el tiempo de extracción en el header X-Extraction-Time-Ms."""
+    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
+
+    response = client.post("/api/v1/pdfs/", files=archivo)
+
+    assert response.status_code == 201
+    assert float(response.headers["X-Extraction-Time-Ms"]) >= 0
 
 
 @pytest.mark.integration
@@ -238,3 +250,27 @@ async def test_pdf_service_rechaza_content_type_no_pdf(pdf_valido_bytes):
     )
     with pytest.raises(ValidationException):
         await service.procesar_y_guardar(subida)
+
+
+class ExtractorLento(PdfTextExtractor):
+    """Doble de test: extractor que tarda al menos 20 ms en responder."""
+
+    def extraer_texto(self, contenido_bytes: bytes) -> str:
+        time.sleep(0.02)
+        return "texto"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_pdf_service_registra_tiempo_de_extraccion(pdf_valido_bytes):
+    """El servicio deja disponible cuánto tardó la extracción de texto, en ms."""
+    service = PdfService(InMemoryRepository(), ExtractorLento())
+    subida = UploadFile(
+        file=io.BytesIO(pdf_valido_bytes),
+        filename="a.pdf",
+        headers=Headers({"content-type": "application/pdf"}),
+    )
+
+    await service.procesar_y_guardar(subida)
+
+    assert service.ultimo_tiempo_extraccion_ms >= 20

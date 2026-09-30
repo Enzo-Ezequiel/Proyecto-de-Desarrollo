@@ -1,6 +1,7 @@
 """Lógica de negocio para PDFs: validación, deduplicado y persistencia."""
 
 import hashlib
+import time
 
 from fastapi import UploadFile
 
@@ -26,6 +27,7 @@ class PdfService(BaseService[DocumentoPDF]):
     ) -> None:
         super().__init__(repository)
         self._text_extractor = text_extractor
+        self.ultimo_tiempo_extraccion_ms: float = 0.0
 
     async def procesar_y_guardar(self, file: UploadFile) -> DocumentoPDF:
         """Valida archivo, verifica duplicados y guarda."""
@@ -36,7 +38,9 @@ class PdfService(BaseService[DocumentoPDF]):
         checksum = hashlib.sha256(contenido_bytes).hexdigest()
         await self._validar_no_duplicado(checksum)
 
+        inicio = time.perf_counter()
         texto_extraido = self._text_extractor.extraer_texto(contenido_bytes)
+        self.ultimo_tiempo_extraccion_ms = (time.perf_counter() - inicio) * 1000
 
         nuevo_documento = DocumentoPDF(
             nombre_pdf=file.filename,
