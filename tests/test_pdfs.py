@@ -77,6 +77,17 @@ def test_registrar_pdf_valido_extrae_texto(client, pdf_valido_bytes):
 
 
 @pytest.mark.integration
+def test_registrar_pdf_informa_tiempo_de_extraccion(client, pdf_valido_bytes):
+    """La subida expone el tiempo de extracción en el header X-Extraction-Time-Ms."""
+    archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
+
+    response = client.post("/api/v1/pdfs/", files=archivo)
+
+    assert response.status_code == 201
+    assert float(response.headers["X-Extraction-Time-Ms"]) >= 0
+
+
+@pytest.mark.integration
 def test_registrar_pdf_duplicado_es_rechazado(client, pdf_valido_bytes):
     """Mismo PDF (mismo checksum) no puede registrarse dos veces."""
     archivo = {"file": ("documento.pdf", pdf_valido_bytes, "application/pdf")}
