@@ -91,7 +91,7 @@ La API estará disponible en:
 uv run pytest tests/ -v
 ```
 
-Los 17 tests de `tests/test_pdfs.py` usan un repositorio en memoria (`InMemoryRepository`) inyectado vía `app.dependency_overrides`, así que corren solos, sin necesitar el paso 5 (Mongo levantada). Es el primer chequeo antes de probar contra la app real. El detalle de qué se cubre y qué queda fuera a propósito está en [Estrategia de testing](#estrategia-de-testing).
+Los 20 tests de `tests/test_pdfs.py` usan un repositorio en memoria (`InMemoryRepository`) inyectado vía `app.dependency_overrides`, así que corren solos, sin necesitar el paso 5 (Mongo levantada). Es el primer chequeo antes de probar contra la app real. El detalle de qué se cubre y qué queda fuera a propósito está en [Estrategia de testing](#estrategia-de-testing).
 
 ### 8. Probar el flujo completo contra la app real (verificación manual)
 
@@ -254,6 +254,8 @@ docker/
 └── .env.example           # Plantilla de variables (copiar a docker/.env)
 
 tests/                     # Suite de pruebas
+└── carga/
+    └── extraccion_texto.js  # Prueba de carga k6 (velocidad de extracción)
 
 docs/                      # Documentación
 
@@ -325,15 +327,15 @@ capa el idioma es consistente.
 
 ## Estrategia de testing
 
-La suite (`tests/test_pdfs.py`, 17 tests) entra al sistema por dos *seams* —
+La suite (`tests/test_pdfs.py`, 20 tests) entra al sistema por dos *seams* —
 dos puntos de sustitución donde el test reemplaza una pieza real por otra.
 
 ### Qué se testea y en qué nivel
 
 | Seam | Nivel | Tests | Cómo entra el test |
 |---|---|---|---|
-| **HTTP** | Integración capa 1 + capa 2 (controller + schemas + service) | 16 | `TestClient` de FastAPI contra la API real: rutas, status codes, validación Pydantic, flujo `controller → service → repository` |
-| **Servicio** | Unitario | 1 (`test_pdf_service_unitario_sin_mongo`) | Instancia directa de `PdfService` con `InMemoryRepository`, sin HTTP, aislando las reglas de negocio (extracción de texto, rechazo de duplicados) |
+| **HTTP** | Integración capa 1 + capa 2 (controller + schemas + service) | 17 | `TestClient` de FastAPI contra la API real: rutas, status codes, validación Pydantic, flujo `controller → service → repository` |
+| **Servicio** | Unitario | 3 (`test_pdf_service_*`) | Instancia directa de `PdfService` con `InMemoryRepository`, sin HTTP, aislando las reglas de negocio (extracción de texto, rechazo de duplicados, formato, tiempo de extracción) |
 
 ### Sustitución por inversión de dependencias, no por mocks
 
@@ -407,8 +409,66 @@ uv sync --extra dev
 uv run pytest tests/ --cov=app --cov-report=term-missing
 ```
 
-Coverage actual: **86% global**, con `mongo_repository.py` como única exclusión
+Coverage actual: **87% global**, con `mongo_repository.py` como única exclusión
 relevante (ver arriba).
+
+### Prueba de carga con k6: velocidad de extracción de texto
+
+`tests/carga/extraccion_texto.js` es una prueba de carga con
+[k6](https://grafana.com/docs/k6/latest/) contra la app levantada (con Mongo
+real). No forma parte de `pytest`: no es hermética ni rápida, y mide
+rendimiento, no comportamiento.
+
+**Qué mide.** El endpoint `POST /api/v1/pdfs/` devuelve el header
+`X-Extraction-Time-Ms`, que cronometra **solo** la extracción con pypdf
+(`PdfService` alrededor de `PdfTextExtractor.extraer_texto`). El script lo junta
+en la métrica `tiempo_extraccion_ms` y lo compara con
+`http_req_duration{endpoint:subida}`, que es la request completa (red, lectura,
+checksum, Mongo y extracción).
+
+**Cómo funciona.** Cada iteración arma un PDF con texto único (para no chocar con
+la regla de duplicados por checksum), lo sube, verifica que el texto extraído
+contenga la marca de esa iteración y después lo borra con `DELETE`, así la base
+queda como estaba.
+
+```powershell
+# Instalar k6 (una sola vez; no es dependencia de Python, no va con uv)
+winget install k6 --source winget
+
+# Con la app y Mongo levantadas (pasos 5 y 6, o Docker):
+k6 run tests/carga/extraccion_texto.js                     # 5 VUs, 30 s, PDFs de 10 páginas
+k6 run --vus 20 --duration 1m -e PAGINAS=50 tests/carga/extraccion_texto.js
+k6 run -e BASE_URL=http://otra-url:8000 tests/carga/extraccion_texto.js
+```
+
+| Variable / flag | Default | Para qué |
+|---|---|---|
+| `-e BASE_URL` | `http://localhost:8000` | URL de la API |
+| `-e PAGINAS` | `10` | Páginas de cada PDF generado (más páginas = más texto para extraer) |
+| `--vus` / `--duration` | `5` / `30s` | Usuarios concurrentes y duración (flags propios de k6) |
+
+La corrida falla si más del 1% de las subidas da error o si falla algún
+`check` (status 201, header presente, texto extraído correcto).
+
+### Deuda técnica: la extracción bloquea el event loop
+
+`PdfTextExtractor.extraer_texto` es CPU puro y sincrónico, pero se llama desde
+un endpoint `async`. Mientras pypdf extrae, el event loop de uvicorn no atiende
+otras requests. En k6 se ve así: con más VUs, `tiempo_extraccion_ms` se mantiene
+parecido, pero `http_req_duration{endpoint:subida}` crece porque las requests
+esperan en cola.
+
+Referencia (PDFs de 10 páginas, sandbox con repositorio en memoria, así que los
+números absolutos van a variar en otra máquina):
+
+| VUs | `tiempo_extraccion_ms` (promedio) | `http_req_duration{endpoint:subida}` (promedio) |
+|---|---|---|
+| 1 | ~76 ms | ~79 ms |
+| 5 | ~65 ms | ~185 ms |
+
+No se corrige ahora porque el pedido era medir, no optimizar. La solución
+posible sería ejecutar la extracción en un thread (`asyncio.to_thread`), y k6
+serviría para comparar el antes y el después.
 
 ---
 
